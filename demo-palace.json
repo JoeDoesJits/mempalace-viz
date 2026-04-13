@@ -1,0 +1,80 @@
+{
+  "wing": "demo_user",
+  "total_drawers": 42,
+  "rooms": [
+    {
+      "name": "projects",
+      "drawers": [
+        {"t": "Building a CLI Task Manager in Rust", "s": "notes/rust-cli.md", "l": 450, "p": "# CLI Task Manager\n\nA terminal-based task manager built with Rust and clap.\n\n## Features\n- Add, complete, and archive tasks\n- Priority levels (high/medium/low)\n- SQLite persistence\n- Color-coded output via crossterm", "d": "2026-04-12T10:30:00Z"},
+        {"t": "Home Automation Dashboard with MQTT", "s": "notes/home-auto.md", "l": 380, "p": "# Home Automation\n\nUsing MQTT broker + ESP32 sensors to monitor temperature, humidity, and light levels across rooms.\n\n## Stack\n- Mosquitto MQTT broker\n- Node-RED for flow automation\n- Grafana dashboards", "d": "2026-04-10T14:20:00Z"},
+        {"t": "Recipe Recommendation Engine", "s": "notes/recipe-engine.md", "l": 520, "p": "# Recipe Recommender\n\nContent-based filtering using ingredient similarity and user preference vectors.\n\n## Approach\n- TF-IDF on ingredient lists\n- Cosine similarity scoring\n- Dietary constraint filtering\n- Seasonal ingredient boosting", "d": "2026-04-08T09:15:00Z"},
+        {"t": "Budget Tracker Mobile App", "s": "notes/budget-app.md", "l": 340, "p": "# Budget Tracker\n\nReact Native app for tracking daily expenses with category breakdown and monthly trends.\n\n## Features\n- Camera receipt scanning via OCR\n- Category auto-detection\n- Monthly spending charts", "d": "2026-04-05T16:00:00Z"},
+        {"t": "Personal Website Redesign v3", "s": "notes/website-v3.md", "l": 290, "p": "# Website Redesign\n\nMoving from Next.js to Astro for better performance and simpler deployment.\n\n## Goals\n- Sub-1s load time\n- MDX blog posts\n- View transitions API\n- Dark mode", "d": "2026-03-28T11:00:00Z"},
+        {"t": "Garden Irrigation Scheduler", "s": "notes/irrigation.md", "l": 410, "p": "# Smart Irrigation\n\nArduino-based garden irrigation that checks weather API before watering.\n\n## Components\n- Arduino Mega with relay shield\n- Soil moisture sensors (capacitive)\n- OpenWeatherMap API integration\n- Cron scheduling via Node.js", "d": "2026-03-20T08:30:00Z"}
+      ]
+    },
+    {
+      "name": "work",
+      "drawers": [
+        {"t": "Quarterly OKR Planning Template", "s": "work/okr-template.md", "l": 620, "p": "# OKR Planning\n\nStandardized template for quarterly objective and key result planning.\n\n## Structure\n- Company-level objectives cascade to team OKRs\n- Each KR must be measurable with clear metrics\n- Confidence scoring at start and mid-quarter\n- Retrospective format for end-of-quarter review", "d": "2026-04-11T09:00:00Z"},
+        {"t": "API Rate Limiting Strategy", "s": "work/rate-limiting.md", "l": 480, "p": "# Rate Limiting\n\nToken bucket algorithm with sliding window for API gateway.\n\n## Implementation\n- Redis-backed counters\n- Per-user and per-endpoint limits\n- Graduated throttling (warn → slow → block)\n- Retry-After headers for client guidance", "d": "2026-04-09T13:45:00Z"},
+        {"t": "Database Migration Runbook", "s": "work/db-migration.md", "l": 550, "p": "# DB Migration Runbook\n\nStep-by-step process for zero-downtime PostgreSQL migrations.\n\n## Phases\n1. Schema expansion (additive only)\n2. Dual-write deployment\n3. Backfill historical data\n4. Cut over reads\n5. Drop old columns after cool-down", "d": "2026-04-07T10:30:00Z"},
+        {"t": "Incident Response Playbook", "s": "work/incident-response.md", "l": 700, "p": "# Incident Response\n\nSeverity classification and escalation procedures.\n\n## Severity Levels\n- **SEV1:** Full outage, all hands on deck\n- **SEV2:** Degraded service, on-call + lead\n- **SEV3:** Minor issue, on-call handles\n- **SEV4:** Cosmetic, next sprint", "d": "2026-04-03T15:00:00Z"},
+        {"t": "Onboarding Checklist for Engineers", "s": "work/onboarding.md", "l": 430, "p": "# Engineer Onboarding\n\nFirst 30 days checklist for new engineering hires.\n\n## Week 1\n- Dev environment setup\n- Access provisioning (GitHub, AWS, Slack)\n- Architecture overview session\n- First good-first-issue PR", "d": "2026-03-25T09:00:00Z"},
+        {"t": "Sprint Retrospective Notes Q1", "s": "work/retro-q1.md", "l": 360, "p": "# Q1 Retro\n\n## What went well\n- Shipped auth service rewrite ahead of schedule\n- Reduced p99 latency from 800ms to 200ms\n\n## What to improve\n- Better test coverage on edge cases\n- Earlier design review involvement", "d": "2026-03-15T14:00:00Z"}
+      ]
+    },
+    {
+      "name": "education",
+      "drawers": [
+        {"t": "Distributed Systems — CAP Theorem Notes", "s": "edu/cap-theorem.md", "l": 580, "p": "# CAP Theorem\n\nIn a distributed system, you can only guarantee two of three: Consistency, Availability, Partition tolerance.\n\n## Key Insights\n- CP systems: MongoDB, HBase — strong consistency, may reject writes during partition\n- AP systems: Cassandra, DynamoDB — always available, eventual consistency\n- CA is theoretical only (no network = no distribution)", "d": "2026-04-11T20:00:00Z"},
+        {"t": "Machine Learning Fundamentals — Bias-Variance", "s": "edu/bias-variance.md", "l": 440, "p": "# Bias-Variance Tradeoff\n\n**High bias:** Model too simple, underfitting (linear model on nonlinear data)\n**High variance:** Model too complex, overfitting (deep tree on small dataset)\n\n## Strategies\n- Cross-validation to detect overfitting\n- Regularization (L1/L2) to reduce variance\n- Ensemble methods (bagging reduces variance, boosting reduces bias)", "d": "2026-04-09T18:30:00Z"},
+        {"t": "Cryptography Basics — Public Key Infrastructure", "s": "edu/pki.md", "l": 510, "p": "# PKI Notes\n\nPublic key infrastructure enables secure communication without pre-shared secrets.\n\n## Components\n- Certificate Authority (CA) — issues and signs certificates\n- Registration Authority (RA) — verifies identity before CA signs\n- Certificate Revocation List (CRL) — invalidated certs\n- OCSP — real-time cert status checking", "d": "2026-04-06T21:00:00Z"},
+        {"t": "Kubernetes Architecture Deep Dive", "s": "edu/k8s-arch.md", "l": 630, "p": "# Kubernetes Architecture\n\n## Control Plane\n- **kube-apiserver:** REST API gateway, all commands go through here\n- **etcd:** Distributed key-value store for cluster state\n- **kube-scheduler:** Assigns pods to nodes based on constraints\n- **controller-manager:** Runs reconciliation loops (ReplicaSet, Deployment, etc.)", "d": "2026-04-01T19:00:00Z"},
+        {"t": "Graph Algorithms — Dijkstra and A*", "s": "edu/graph-algos.md", "l": 470, "p": "# Shortest Path Algorithms\n\n## Dijkstra's\n- Greedy BFS with priority queue\n- O((V+E) log V) with binary heap\n- No negative edges\n\n## A*\n- Dijkstra + heuristic function h(n)\n- Admissible heuristic guarantees optimality\n- Common heuristics: Manhattan distance, Euclidean distance", "d": "2026-03-22T16:00:00Z"}
+      ]
+    },
+    {
+      "name": "learning",
+      "drawers": [
+        {"t": "Vim Motions Cheat Sheet", "s": "learning/vim.md", "l": 350, "p": "# Vim Motions\n\n## Essential\n- `ciw` — change inner word\n- `da\"` — delete around quotes\n- `yi(` — yank inside parentheses\n- `ct.` — change to next period\n- `gd` — go to definition\n- `*` — search word under cursor", "d": "2026-04-12T08:00:00Z"},
+        {"t": "Docker Compose Patterns", "s": "learning/docker-compose.md", "l": 490, "p": "# Docker Compose Patterns\n\n## Multi-stage builds\n```dockerfile\nFROM node:20-slim AS builder\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci\nCOPY . .\nRUN npm run build\n\nFROM node:20-slim\nCOPY --from=builder /app/dist ./dist\n```\n\n## Health checks\n```yaml\nhealthcheck:\n  test: curl -f http://127.0.0.1:3000/health\n  interval: 30s\n  timeout: 5s\n```", "d": "2026-04-10T07:00:00Z"},
+        {"t": "Git Rebase vs Merge Strategy", "s": "learning/git-rebase.md", "l": 380, "p": "# Rebase vs Merge\n\n**Rebase:** Replay commits on top of target branch. Clean linear history.\n**Merge:** Create merge commit preserving branch topology.\n\n## Rule of thumb\n- Rebase local/feature branches before PR\n- Merge into main/shared branches\n- Never rebase public/shared branches", "d": "2026-04-07T12:00:00Z"},
+        {"t": "CSS Grid Layout Reference", "s": "learning/css-grid.md", "l": 420, "p": "# CSS Grid\n\n## Key properties\n```css\n.container {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n  gap: 16px;\n}\n```\n\n## Named areas\n```css\ngrid-template-areas:\n  'header header'\n  'sidebar main'\n  'footer footer';\n```", "d": "2026-04-02T10:00:00Z"},
+        {"t": "TypeScript Utility Types", "s": "learning/ts-utils.md", "l": 310, "p": "# TS Utility Types\n\n- `Partial<T>` — all props optional\n- `Required<T>` — all props required\n- `Pick<T, K>` — subset of props\n- `Omit<T, K>` — exclude props\n- `Record<K, V>` — key-value map\n- `ReturnType<F>` — infer function return", "d": "2026-03-18T15:00:00Z"}
+      ]
+    },
+    {
+      "name": "personal",
+      "drawers": [
+        {"t": "Book List 2026", "s": "personal/books.md", "l": 300, "p": "# Reading List\n\n## Currently Reading\n- *Designing Data-Intensive Applications* — Martin Kleppmann\n\n## Completed\n- *The Pragmatic Programmer* — Hunt & Thomas\n- *Atomic Habits* — James Clear\n- *Staff Engineer* — Will Larson", "d": "2026-04-12T22:00:00Z"},
+        {"t": "Fitness Goals and Routine", "s": "personal/fitness.md", "l": 280, "p": "# Fitness\n\n## Current Routine\n- Mon/Wed/Fri: Strength training (push/pull/legs)\n- Tue/Thu: BJJ or cardio\n- Sat: Long hike or bike ride\n- Sun: Active recovery / yoga", "d": "2026-04-08T06:00:00Z"},
+        {"t": "Meal Prep Ideas — High Protein", "s": "personal/meal-prep.md", "l": 350, "p": "# Meal Prep\n\n## Batch Cook Sundays\n- Grilled chicken thighs (5 lbs)\n- Brown rice (3 cups dry)\n- Roasted vegetables (broccoli, sweet potato, peppers)\n- Hard-boiled eggs (dozen)\n\n## Quick Lunches\n- Chicken + rice + veggies bowl\n- Greek yogurt + nuts + berries", "d": "2026-04-01T12:00:00Z"},
+        {"t": "Travel Planning — Japan 2026", "s": "personal/japan-trip.md", "l": 520, "p": "# Japan Trip Planning\n\n## Itinerary Draft\n- Day 1-3: Tokyo (Shinjuku, Akihabara, Tsukiji)\n- Day 4-5: Hakone (onsen, Mt. Fuji views)\n- Day 6-8: Kyoto (temples, bamboo grove, Fushimi Inari)\n- Day 9-10: Osaka (street food, Dotonbori)\n\n## Budget: ~$4000 for 2 people", "d": "2026-03-10T20:00:00Z"}
+      ]
+    },
+    {
+      "name": "identity",
+      "drawers": [
+        {"t": "Professional Bio — Short Form", "s": "identity/bio.md", "l": 250, "p": "# Professional Bio\n\nSoftware engineer and tech lead with 10+ years building distributed systems. Passionate about developer experience, knowledge management, and making complex systems observable.", "d": "2026-04-11T08:00:00Z"},
+        {"t": "Core Values and Principles", "s": "identity/values.md", "l": 320, "p": "# Core Values\n\n1. **Build in public** — share learnings, not just wins\n2. **Depth over breadth** — master fundamentals before chasing trends\n3. **Automate the boring** — free humans for creative work\n4. **Write it down** — if it's not documented, it doesn't exist\n5. **Stay curious** — always be learning something new", "d": "2026-04-05T07:00:00Z"},
+        {"t": "Career Timeline", "s": "identity/career.md", "l": 400, "p": "# Career Timeline\n\n- 2014: First dev job (PHP/jQuery — we all start somewhere)\n- 2016: Moved to Node.js/React stack\n- 2018: First tech lead role\n- 2020: Shifted to distributed systems\n- 2022: Started consulting on the side\n- 2024: Full-time consulting + knowledge management tools", "d": "2026-03-30T10:00:00Z"}
+      ]
+    },
+    {
+      "name": "tools",
+      "drawers": [
+        {"t": "Neovim Config Breakdown", "s": "tools/neovim.md", "l": 460, "p": "# Neovim Setup\n\n## Plugin Manager: lazy.nvim\n\n## Essential Plugins\n- telescope.nvim — fuzzy finder\n- nvim-treesitter — syntax highlighting\n- nvim-lspconfig — LSP integration\n- oil.nvim — file explorer\n- gitsigns.nvim — git decorations", "d": "2026-04-11T15:00:00Z"},
+        {"t": "Cloudflare Workers Cookbook", "s": "tools/cf-workers.md", "l": 540, "p": "# CF Workers Recipes\n\n## KV-backed redirect service\n```javascript\nexport default {\n  async fetch(request, env) {\n    const url = new URL(request.url);\n    const target = await env.REDIRECTS.get(url.pathname);\n    if (target) return Response.redirect(target, 301);\n    return new Response('Not found', { status: 404 });\n  }\n};\n```", "d": "2026-04-06T11:00:00Z"},
+        {"t": "tmux Configuration and Shortcuts", "s": "tools/tmux.md", "l": 290, "p": "# tmux Config\n\n## Key bindings (prefix: Ctrl+a)\n- `prefix + |` — vertical split\n- `prefix + -` — horizontal split\n- `prefix + h/j/k/l` — pane navigation\n- `prefix + z` — zoom pane toggle\n- `prefix + d` — detach session", "d": "2026-03-29T09:00:00Z"}
+      ]
+    },
+    {
+      "name": "memory_inbox",
+      "drawers": [
+        {"t": "Interesting article on WebAssembly and edge computing", "s": "inbox/wasm-edge.md", "l": 200, "p": "Came across a great article on using WASM modules at the edge for near-zero cold start serverless functions. Key takeaway: WASM + WASI could replace containers for lightweight workloads.", "d": "2026-04-13T06:00:00Z"},
+        {"t": "Idea: Knowledge graph diff viewer", "s": "inbox/kg-diff.md", "l": 180, "p": "What if we could visualize the diff between two snapshots of a knowledge graph? Show added/removed/modified nodes with color coding. Could be useful for tracking how understanding evolves over time.", "d": "2026-04-12T23:00:00Z"}
+      ]
+    }
+  ]
+}

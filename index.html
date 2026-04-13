@@ -1,0 +1,4257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MemPalaceViz — The Crystal Fortress</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://d3js.org https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data: blob:;">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<script src="https://d3js.org/d3.v7.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" integrity="sha384-H+hy9ULve6xfxRkWIh/YOtvDdpXgV2fmAGQkIDTxIgZwNoaoBal14Di2YTMR6MzR" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js" integrity="sha384-eEu5CTj3qGvu9PdJuS+YlkNi7d2XxQROAFYOr59zgObtlcux1ae1Il3u7jvdCSWu" crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg: #0a0b10;
+    --bg-elev: rgba(16,18,28,0.85);
+    --bg-glass: rgba(20,22,35,0.72);
+    --fg: #e8ecf2;
+    --fg-dim: #6e7a8a;
+    --fg-muted: #3d4555;
+    --cyan: #4dd9e8;
+    --purple: #6b3fa0;
+    --magenta: #c94de8;
+    --gradient: linear-gradient(135deg, #4dd9e8, #6b3fa0);
+    --glow-cyan: rgba(77,217,232,0.4);
+    --glow-purple: rgba(107,63,160,0.3);
+    --border: rgba(77,217,232,0.12);
+    --border-hover: rgba(77,217,232,0.35);
+    --projects: #f778ba;
+    --work: #ffa657;
+    --education: #79c0ff;
+    --learning: #7ee787;
+    --personal: #d2a8ff;
+    --identity: #ff9b9b;
+    --tools: #ffd166;
+    --memory_inbox: #8ddbe0;
+    --radius: 12px;
+    --overlay-bg: rgba(0,0,0,0.65);
+    --detail-content-bg: rgba(0,0,0,0.3);
+    --code-bg: rgba(77,217,232,0.08);
+    --pre-bg: rgba(0,0,0,0.4);
+    --link-stroke: rgba(77,217,232,0.06);
+    --room-link-stroke: rgba(77,217,232,0.18);
+    --star-canvas: 1;
+  }
+
+  /* ── Crystal Palace Light Theme ── */
+  [data-theme="light"] {
+    --bg: #e8edf5;
+    --bg-elev: rgba(255,255,255,0.88);
+    --bg-glass: rgba(255,255,255,0.72);
+    --fg: #1a1e2e;
+    --fg-dim: #6b7280;
+    --fg-muted: #9ca3af;
+    --cyan: #0891b2;
+    --purple: #7c3aed;
+    --magenta: #a855f7;
+    --gradient: linear-gradient(135deg, #0891b2, #7c3aed);
+    --glow-cyan: rgba(8,145,178,0.25);
+    --glow-purple: rgba(124,58,237,0.2);
+    --border: rgba(8,145,178,0.15);
+    --border-hover: rgba(8,145,178,0.35);
+    --projects: #db2777;
+    --work: #ea580c;
+    --education: #2563eb;
+    --learning: #16a34a;
+    --personal: #7c3aed;
+    --identity: #dc2626;
+    --tools: #ca8a04;
+    --memory_inbox: #0891b2;
+    --overlay-bg: rgba(255,255,255,0.7);
+    --detail-content-bg: rgba(0,0,0,0.04);
+    --code-bg: rgba(8,145,178,0.08);
+    --pre-bg: rgba(0,0,0,0.05);
+    --link-stroke: rgba(8,145,178,0.08);
+    --room-link-stroke: rgba(8,145,178,0.2);
+    --star-canvas: 0;
+  }
+  [data-theme="light"] .detail-content strong { color: var(--fg); }
+  [data-theme="light"] #panel::before {
+    background: linear-gradient(180deg, transparent, #0891b2, #7c3aed, #a855f7, #0891b2, transparent);
+    background-size: 100% 200%;
+  }
+  [data-theme="light"] #panel::after {
+    background: linear-gradient(90deg, transparent, rgba(8,145,178,0.35), transparent);
+  }
+  [data-theme="light"] .drawer-row { border-bottom-color: rgba(0,0,0,0.04); }
+  [data-theme="light"] .drawer-row:hover { background: rgba(0,0,0,0.03); }
+  [data-theme="light"] .panel-tab:hover { background: rgba(0,0,0,0.03); }
+  [data-theme="light"] .room-chip:hover { background: rgba(0,0,0,0.05); }
+  [data-theme="light"] .cmd-item:hover,
+  [data-theme="light"] .cmd-item.selected { background: rgba(8,145,178,0.06); }
+  [data-theme="light"] kbd {
+    background: rgba(0,0,0,0.05);
+    border-color: rgba(0,0,0,0.12);
+    color: var(--fg-dim);
+  }
+  [data-theme="light"] .add-form-group select option { background: #fff; color: #1a1e2e; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.5; overflow: hidden; transition: background 0.4s ease, color 0.3s ease; }
+  #stars-canvas, #crystal-canvas { transition: opacity 0.5s ease; }
+
+  /* ── Layout ── */
+  #app { display: grid; grid-template-columns: 1fr 400px; height: 100vh; }
+  #universe { position: relative; overflow: hidden; }
+  #stars-canvas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; }
+  #sparkle-canvas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
+  #svg-layer { position: absolute; inset: 0; z-index: 1; }
+  #svg-layer svg { width: 100%; height: 100%; display: block; }
+
+  /* ── Controls ── */
+  #controls { position: absolute; top: 16px; left: 16px; right: 416px; z-index: 10; display: flex; flex-direction: column; gap: 6px; }
+  .controls-row { display: flex; align-items: center; gap: 8px; }
+  #controls button {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font: 500 12px 'Space Grotesk', sans-serif;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  #controls button:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 20px var(--glow-cyan); }
+  #controls button.active { background: linear-gradient(135deg, rgba(77,217,232,0.15), rgba(107,63,160,0.15)); border-color: var(--cyan); color: var(--cyan); }
+
+  #search-box { flex: 1 1 180px; min-width: 150px; max-width: 400px; margin-left: auto; position: relative; }
+  #search-box input {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px 8px 36px;
+    font: 400 13px 'Inter', sans-serif;
+    width: 100%;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  #search-box input:focus { border-color: var(--cyan); box-shadow: 0 0 20px var(--glow-cyan); }
+  #search-box::before {
+    content: '⌕';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--fg-dim);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  /* ── Search Filters Row ── */
+  .controls-row-filters { display: none; align-items: center; gap: 8px; }
+  .controls-row-filters.visible { display: flex; }
+  .controls-row-filters label { font: 500 10px 'Space Grotesk', sans-serif; color: var(--fg-dim); white-space: nowrap; }
+  .controls-row-filters input[type="date"] {
+    background: var(--bg-glass); backdrop-filter: blur(12px); color: var(--fg);
+    border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px;
+    font: 400 11px 'Inter', sans-serif; outline: none; transition: border-color 0.2s;
+  }
+  .controls-row-filters input[type="date"]:focus { border-color: var(--cyan); }
+  .filter-toggle { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; color: var(--fg-dim); font: 500 10px 'Space Grotesk', sans-serif; cursor: pointer; transition: all 0.2s; }
+  .filter-toggle:hover { border-color: var(--cyan); color: var(--cyan); }
+  .filter-toggle.active { color: var(--cyan); border-color: var(--cyan); }
+  .filter-clear { background: none; border: none; color: var(--fg-dim); font-size: 12px; cursor: pointer; padding: 2px 6px; }
+  .filter-clear:hover { color: var(--fg); }
+
+  /* ── Cluster Legend ── */
+  #cluster-legend { display: none; align-items: center; gap: 6px; flex-wrap: wrap; }
+  #cluster-legend.visible { display: flex; }
+  .cluster-tag { display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font: 400 9px 'JetBrains Mono', monospace; color: var(--fg); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.2s; }
+  .cluster-tag:hover { background: rgba(255,255,255,0.1); }
+  .cluster-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* ── Panel ── */
+  #panel {
+    background: var(--bg-elev);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 5;
+    position: relative;
+  }
+  #panel-header {
+    padding: 24px 24px 0;
+    flex-shrink: 0;
+  }
+  #panel-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 24px 24px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fg-muted) transparent;
+  }
+
+  /* ── Title ── */
+  .palace-title {
+    font: 700 22px 'Space Grotesk', sans-serif;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.3px;
+  }
+  .palace-sub {
+    font: 400 12px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    margin-top: 2px;
+  }
+
+  /* ── Stats ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .stat-card {
+    background: rgba(77,217,232,0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .stat-card:hover { border-color: var(--border-hover); box-shadow: 0 0 15px rgba(77,217,232,0.08); }
+  .stat-val {
+    font: 600 24px 'Space Grotesk', sans-serif;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--fg-dim);
+    margin-top: 2px;
+  }
+
+  /* ── Section headers ── */
+  .section-label {
+    font: 600 10px 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--fg-dim);
+    margin: 20px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Room Legend ── */
+  .room-legend { display: flex; flex-wrap: wrap; gap: 6px; }
+  .room-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font: 500 11px 'Space Grotesk', sans-serif;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    background: rgba(255,255,255,0.04);
+  }
+  .room-chip:hover { background: rgba(255,255,255,0.08); }
+  .room-chip.active { border-color: currentColor; background: rgba(255,255,255,0.06); }
+  .room-chip.dim { opacity: 0.25; }
+  .room-dot { width: 8px; height: 8px; border-radius: 50%; position: relative; }
+  .room-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.3;
+    animation: dotPulse 2s ease-in-out infinite;
+  }
+  @keyframes dotPulse { 0%,100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.5); opacity: 0; } }
+  .room-count {
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    margin-left: 2px;
+  }
+
+  /* ── Drawer Detail ── */
+  #detail {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    animation: fadeSlideUp 0.3s ease;
+  }
+  @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .detail-room-badge {
+    display: inline-block;
+    font: 600 10px 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+  }
+  .detail-title {
+    font: 600 15px 'Space Grotesk', sans-serif;
+    color: var(--fg);
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .detail-meta {
+    font: 400 11px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    margin-bottom: 12px;
+  }
+  .detail-content {
+    background: var(--detail-content-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fg-muted) transparent;
+  }
+  /* Markdown rendered content */
+  .detail-content h1, .detail-content h2, .detail-content h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--cyan);
+    margin: 12px 0 6px;
+  }
+  .detail-content h1 { font-size: 16px; }
+  .detail-content h2 { font-size: 14px; }
+  .detail-content h3 { font-size: 13px; }
+  .detail-content p { font-size: 13px; line-height: 1.65; margin: 0 0 10px; color: var(--fg); }
+  .detail-content ul, .detail-content ol { font-size: 13px; padding-left: 20px; margin: 0 0 10px; }
+  .detail-content li { margin-bottom: 4px; }
+  .detail-content code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--cyan);
+  }
+  .detail-content pre { background: var(--pre-bg); border-radius: 8px; padding: 12px; overflow-x: auto; margin: 0 0 10px; }
+  .detail-content pre code { background: none; padding: 0; }
+  .detail-content strong { color: var(--fg); }
+  .detail-content a { color: var(--cyan); text-decoration: none; }
+  .detail-content blockquote { border-left: 3px solid var(--purple); padding-left: 12px; color: var(--fg-dim); margin: 0 0 10px; }
+  .detail-empty { color: var(--fg-dim); font-style: italic; font-size: 13px; }
+
+  /* ── Refresh indicator ── */
+  .refresh-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 400px;
+    height: 2px;
+    z-index: 10;
+    background: rgba(77,217,232,0.1);
+    overflow: hidden;
+  }
+  .refresh-bar .progress {
+    height: 100%;
+    background: var(--gradient);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .refresh-indicator {
+    position: absolute;
+    bottom: 12px;
+    left: 16px;
+    z-index: 10;
+    font: 400 11px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── Mini-map ── */
+  #minimap {
+    position: absolute;
+    bottom: 36px;
+    right: 416px;
+    width: 160px;
+    height: 110px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    z-index: 10;
+    overflow: hidden;
+    cursor: pointer;
+    transition: opacity 0.3s;
+  }
+  #minimap:hover { border-color: var(--border-hover); }
+  #minimap canvas { width: 100%; height: 100%; display: block; }
+  #minimap .viewport-rect {
+    position: absolute;
+    border: 1px solid var(--cyan);
+    background: rgba(77,217,232,0.06);
+    pointer-events: none;
+    transition: all 0.1s;
+  }
+
+  /* ── Dashboard Controls ── */
+  #dash-controls {
+    display: flex;
+    gap: 6px;
+    margin: 16px 0 0;
+  }
+  .dash-btn {
+    flex: 1;
+    background: rgba(77,217,232,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 6px;
+    font: 500 10px 'Space Grotesk', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .dash-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 12px var(--glow-cyan); }
+  .dash-btn.active { color: var(--cyan); border-color: var(--cyan); }
+  .dash-btn .icon { font-size: 13px; }
+
+  /* ── Local Graph Mode ── */
+  .local-graph-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(77,217,232,0.06);
+    border: 1px solid var(--border-hover);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    animation: fadeSlideUp 0.3s ease;
+  }
+  .local-graph-banner span {
+    font: 500 11px 'Space Grotesk', sans-serif;
+    color: var(--cyan);
+  }
+  .local-graph-banner button {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--fg-dim);
+    font: 500 10px 'Space Grotesk', sans-serif;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .local-graph-banner button:hover { color: var(--fg); border-color: var(--fg-dim); }
+
+  /* ── Keyboard hint bar ── */
+  #kbd-hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-60%);
+    z-index: 8;
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-muted);
+    display: flex;
+    gap: 14px;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+  #kbd-hint:hover { opacity: 1; }
+  #kbd-hint span { display: flex; align-items: center; gap: 3px; }
+  kbd {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    line-height: 1.4;
+  }
+
+  /* ── Keyboard Reference Overlay ── */
+  #kb-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-bg);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #kb-overlay.open { display: flex; }
+  #kb-box {
+    width: 520px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius);
+    box-shadow: 0 16px 64px rgba(0,0,0,0.6);
+    padding: 28px 32px;
+    animation: fadeSlideUp 0.15s ease;
+    max-height: 80vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fg-muted) transparent;
+  }
+  #kb-box h2 {
+    font: 600 16px 'Space Grotesk', sans-serif;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+  }
+  .kb-section {
+    margin-bottom: 16px;
+  }
+  .kb-section-title {
+    font: 600 9px 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--fg-dim);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .kb-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .kb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+  .kb-row-label {
+    font: 400 13px 'Inter', sans-serif;
+    color: var(--fg);
+  }
+  .kb-row-keys {
+    display: flex;
+    gap: 4px;
+  }
+  .kb-row-keys kbd {
+    font-size: 11px;
+    padding: 2px 7px;
+  }
+  #kb-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: var(--fg-dim);
+    font-size: 18px;
+    cursor: pointer;
+  }
+  #kb-close:hover { color: var(--fg); }
+
+  /* ── Status toast ── */
+  #status-toast {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-glass);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius);
+    padding: 12px 24px;
+    font: 400 12px 'JetBrains Mono', monospace;
+    color: var(--fg);
+    z-index: 30;
+    display: none;
+    animation: fadeSlideUp 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* ── Timeline Bar ── */
+  #timeline-bar {
+    position: absolute;
+    bottom: 36px;
+    left: 16px;
+    right: 590px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+  }
+  #timeline-play {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--cyan);
+    font-size: 12px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  #timeline-play:hover { border-color: var(--cyan); box-shadow: 0 0 10px var(--glow-cyan); }
+  #timeline-play.playing { background: rgba(77,217,232,0.1); border-color: var(--cyan); }
+  #timeline-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: linear-gradient(90deg, var(--border) 0%, var(--border) 100%);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  #timeline-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--cyan);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--glow-cyan);
+    transition: box-shadow 0.2s;
+  }
+  #timeline-slider::-webkit-slider-thumb:hover { box-shadow: 0 0 16px var(--glow-cyan); }
+  #timeline-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--cyan);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 8px var(--glow-cyan);
+  }
+  #timeline-date {
+    font: 400 11px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    min-width: 90px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  #timeline-count {
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+
+  .pulse-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    animation: livePulse 2s ease-in-out infinite;
+  }
+  @keyframes livePulse { 0%,100% { opacity: 1; box-shadow: 0 0 4px var(--glow-cyan); } 50% { opacity: 0.3; box-shadow: none; } }
+
+  /* ── Panel Tabs ── */
+  .panel-tabs {
+    display: flex;
+    gap: 0;
+    margin: 16px 0 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .panel-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    border-right: 1px solid var(--border);
+    padding: 7px 0;
+    font: 500 10px 'Space Grotesk', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .panel-tab:last-child { border-right: none; }
+  .panel-tab:hover { color: var(--fg); background: rgba(255,255,255,0.03); }
+  .panel-tab.active { color: var(--cyan); background: rgba(77,217,232,0.06); }
+
+  /* ── Add Drawer Form ── */
+  #add-drawer-panel { display: none; padding: 12px 0 0; }
+  #add-drawer-panel.visible { display: block; }
+  .add-form-group { margin-bottom: 12px; }
+  .add-form-group label {
+    display: block;
+    font: 500 10px 'Space Grotesk', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    margin-bottom: 4px;
+  }
+  .add-form-group select,
+  .add-form-group input[type="text"],
+  .add-form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--fg);
+    font: 400 12px 'Inter', sans-serif;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .add-form-group select:focus,
+  .add-form-group input[type="text"]:focus,
+  .add-form-group textarea:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 1px rgba(77,217,232,0.15);
+  }
+  .add-form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .add-form-group select { cursor: pointer; }
+  .add-form-group select option { background: var(--bg); color: var(--fg); }
+  #add-submit-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, var(--purple), var(--cyan));
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font: 600 12px 'Space Grotesk', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  #add-submit-btn:hover { opacity: 0.9; }
+  #add-submit-btn:active { transform: scale(0.98); }
+  #add-submit-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+  #add-form-status {
+    margin-top: 8px;
+    font: 400 11px 'Inter', sans-serif;
+    min-height: 16px;
+    text-align: center;
+  }
+  #add-form-status.success { color: #7ee787; }
+  #add-form-status.error { color: #ff6b6b; }
+  .add-char-count {
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    text-align: right;
+    margin-top: 2px;
+  }
+
+  /* ── Drawer List View ── */
+  #drawer-list { display: none; }
+  #drawer-list.visible { display: block; }
+  .list-controls {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .list-sort {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--fg-dim);
+    font: 400 10px 'JetBrains Mono', monospace;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .list-sort:hover, .list-sort.active { color: var(--cyan); border-color: var(--cyan); }
+  .drawer-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+  }
+  .drawer-row:hover { background: rgba(255,255,255,0.03); }
+  .drawer-row.selected { background: rgba(77,217,232,0.06); border-color: var(--border-hover); }
+  .drawer-row-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .drawer-row-info { flex: 1; min-width: 0; }
+  .drawer-row-title {
+    font: 500 12px 'Space Grotesk', sans-serif;
+    color: var(--fg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .drawer-row-meta {
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-muted);
+    margin-top: 2px;
+  }
+  .drawer-row-meta .highlight { color: var(--cyan); }
+
+  /* ── Stats Overlay ── */
+  #stats-panel { display: none; }
+  #stats-panel.visible { display: block; }
+  .insight-card {
+    background: rgba(77,217,232,0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .insight-card:hover { border-color: var(--border-hover); }
+  .insight-label {
+    font: 600 9px 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--fg-dim);
+    margin-bottom: 4px;
+  }
+  .insight-value {
+    font: 500 13px 'Space Grotesk', sans-serif;
+    color: var(--fg);
+  }
+  .insight-sub {
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    margin-top: 2px;
+  }
+
+  /* ── Search match count ── */
+  #search-count {
+    flex-shrink: 0;
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .detail-content mark {
+    background: rgba(77,217,232,0.2);
+    color: var(--cyan);
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  /* ── Fullscreen mode ── */
+  #app.fullscreen { grid-template-columns: 1fr 0; }
+  #app.fullscreen #panel { display: none; }
+  #app.fullscreen #controls { right: 16px; }
+  #app.fullscreen #minimap { right: 16px; }
+  /* search-count is now flex inside #controls, no fullscreen override needed */
+  #app.fullscreen .refresh-bar { right: 0; }
+  #app.fullscreen #timeline-bar { right: 190px; }
+
+  /* ── Fullscreen toggle button ── */
+  #btn-fullscreen {
+    position: absolute;
+    top: 90px;
+    left: 16px;
+    z-index: 12;
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    color: var(--fg-dim);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+  #btn-fullscreen:hover { border-color: var(--cyan); color: var(--cyan); }
+  #app.fullscreen #btn-fullscreen { left: 16px; top: 90px; }
+
+  /* ── Color Mode Toggle ── */
+  #color-mode-bar {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  #color-mode-bar button {
+    background: none;
+    border: none;
+    border-right: 1px solid var(--border);
+    padding: 6px 8px;
+    font: 500 10px 'Space Grotesk', sans-serif;
+    letter-spacing: 0.2px;
+    color: var(--fg-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  #color-mode-bar button:last-child { border-right: none; }
+  #color-mode-bar button:hover { color: var(--fg); background: rgba(255,255,255,0.03); }
+  #color-mode-bar button.active { color: var(--cyan); background: rgba(77,217,232,0.08); }
+
+  /* ── Command Palette ── */
+  #cmd-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-bg);
+    z-index: 100;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 20vh;
+  }
+  #cmd-overlay.open { display: flex; }
+  #cmd-box {
+    width: 480px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius);
+    box-shadow: 0 16px 64px rgba(0,0,0,0.6);
+    overflow: hidden;
+    animation: fadeSlideUp 0.15s ease;
+  }
+  #cmd-input {
+    width: 100%;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    font: 400 15px 'Inter', sans-serif;
+    color: var(--fg);
+    outline: none;
+  }
+  #cmd-input::placeholder { color: var(--fg-muted); }
+  #cmd-results {
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fg-muted) transparent;
+  }
+  .cmd-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .cmd-item:hover, .cmd-item.selected { background: rgba(77,217,232,0.06); }
+  .cmd-item-icon {
+    font-size: 14px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .cmd-item-label {
+    font: 500 13px 'Space Grotesk', sans-serif;
+    color: var(--fg);
+  }
+  .cmd-item-hint {
+    margin-left: auto;
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+
+  /* ── Drawer labels on deep dive ── */
+  .node-label-drawer {
+    fill: var(--fg);
+    font-family: 'Inter', sans-serif;
+    font-size: 8px;
+    text-anchor: middle;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .show-labels .node-label-drawer { opacity: 0.7; }
+
+  /* ── SVG styles ── */
+  .link { stroke: var(--link-stroke); stroke-width: 0.5; }
+  .link.room-link {
+    stroke: var(--room-link-stroke);
+    stroke-width: 1.5;
+    stroke-dasharray: 8,4;
+    animation: dashFlow 2s linear infinite;
+  }
+  @keyframes dashFlow { to { stroke-dashoffset: -24; } }
+  .node-group { cursor: pointer; }
+  .node-glow { opacity: 0; transition: opacity 0.3s; }
+  .node-group:hover .node-glow { opacity: 1; }
+  .node-group.selected .node-ring { opacity: 1; }
+  .node-ring { opacity: 0; transition: opacity 0.3s; }
+  .node-label {
+    fill: var(--fg);
+    font-family: 'Space Grotesk', sans-serif;
+    text-anchor: middle;
+    pointer-events: none;
+    opacity: 0.9;
+  }
+  .node-group.dim { opacity: 0.08; }
+  .node-group.search-match .node-glow { opacity: 1; }
+
+  /* ── Animated panel border ── */
+  #panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -1px;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent, #4dd9e8, #6b3fa0, #c94de8, #4dd9e8, transparent);
+    background-size: 100% 200%;
+    animation: borderFlow 4s linear infinite;
+    z-index: 6;
+  }
+  @keyframes borderFlow { 0% { background-position: 0 0; } 100% { background-position: 0 200%; } }
+
+  /* ── Holographic scan line ── */
+  #panel::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(77,217,232,0.5), transparent);
+    animation: scanLine 6s linear infinite;
+    pointer-events: none;
+    z-index: 7;
+  }
+  @keyframes scanLine { 0% { top: -1px; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
+  /* ── Crystal overlay canvas ── */
+  #crystal-canvas { position: absolute; inset: 0; z-index: 2; pointer-events: none; width: 100%; height: 100%; }
+
+  /* ── Theme Toggle ── */
+  #btn-theme {
+    position: absolute;
+    top: 90px;
+    left: 52px;
+    z-index: 12;
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    color: var(--fg-dim);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+  #btn-theme:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ── Detail Action Buttons ── */
+  .detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .detail-actions button {
+    flex: 1;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font: 500 11px 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--border);
+    background: var(--bg-glass);
+    color: var(--fg-dim);
+  }
+  .detail-actions button:hover { border-color: var(--cyan); color: var(--cyan); }
+  .detail-actions .btn-danger { color: #ff9b9b; }
+  .detail-actions .btn-danger:hover { border-color: #ff9b9b; background: rgba(255,155,155,0.1); }
+  .detail-actions .btn-danger.confirm { background: rgba(255,80,80,0.2); border-color: #ff6b6b; color: #ff6b6b; animation: pulse-danger 1s infinite; }
+  @keyframes pulse-danger { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+  /* ── Room Filter (List View) ── */
+  .list-room-filter {
+    width: 100%;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--fg);
+    font: 400 11px 'Inter', sans-serif;
+    outline: none;
+  }
+  .list-room-filter:focus { border-color: var(--cyan); }
+
+  /* ── Bulk Select ── */
+  .drawer-row-check {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-right: 8px;
+    display: none;
+    transition: all 0.2s;
+  }
+  .bulk-mode .drawer-row-check { display: block; }
+  .drawer-row-check.checked { background: var(--cyan); border-color: var(--cyan); }
+  .bulk-bar {
+    display: none;
+    padding: 8px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    gap: 6px;
+    align-items: center;
+    font: 400 11px 'Inter', sans-serif;
+  }
+  .bulk-bar.visible { display: flex; }
+  .bulk-bar button {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--bg-glass);
+    color: var(--fg-dim);
+    font: 500 10px 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bulk-bar button:hover { border-color: var(--cyan); color: var(--cyan); }
+  .bulk-count { color: var(--cyan); margin-right: auto; }
+
+  /* ── Notification Badge ── */
+  .notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    display: none;
+    animation: notif-pulse 2s infinite;
+  }
+  .notif-badge.active { display: block; }
+  @keyframes notif-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.3); } }
+
+  /* ── Mobile Page Reload ── */
+  #btn-mobile-reload {
+    display: none;
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 25;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    color: var(--fg-dim);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+  }
+  #btn-mobile-reload:active {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    transform: rotate(180deg);
+  }
+
+  /* ── Mobile Responsive ── */
+  @media (max-width: 900px) {
+    #app {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr auto;
+    }
+    #panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      top: auto;
+      height: 50vh;
+      border-left: none;
+      border-top: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      z-index: 20;
+      transform: translateY(calc(100% - 48px));
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #panel.mobile-open { transform: translateY(0); }
+    #panel-header { padding: 12px 16px 0; }
+    #panel-scroll { padding: 0 16px 16px; }
+
+    /* Mobile panel pull tab */
+    #mobile-pull-tab {
+      display: block;
+      width: 40px;
+      height: 4px;
+      background: var(--fg-muted);
+      border-radius: 2px;
+      margin: 8px auto;
+      cursor: pointer;
+    }
+
+    /* Hide elements that overlap on mobile */
+    #minimap { display: none; }
+    #kbd-hint { display: none; }
+    #timeline-bar {
+      right: 16px;
+      bottom: 56px;
+      left: 16px;
+      padding: 6px 12px;
+    }
+    .refresh-bar { right: 0; }
+    .refresh-indicator { bottom: 62px; }
+
+    /* Controls compact mobile layout */
+    #controls {
+      gap: 4px;
+      right: 16px;
+      left: 16px;
+    }
+    .controls-row { flex-wrap: wrap; gap: 4px; }
+    #controls button { padding: 5px 8px; font-size: 10px; }
+    #color-mode-bar { margin-left: 0; }
+
+    /* Search goes full-width on mobile */
+    #search-box {
+      flex-basis: 100%;
+      max-width: 100%;
+      min-width: 0;
+      margin-left: 0;
+    }
+    #search-box input { width: 100%; font-size: 14px; }
+    #search-count { display: none; }
+    .controls-row-filters { flex-wrap: wrap; gap: 4px; }
+    .controls-row-filters input[type="date"] { flex: 1; min-width: 100px; }
+    #cluster-legend { flex-wrap: wrap; gap: 4px; }
+    .cluster-tag { font-size: 8px; }
+    .filter-toggle { font-size: 9px; padding: 3px 6px; }
+
+    /* Fullscreen button / theme button — move to bottom-right above timeline */
+    #btn-fullscreen { top: auto; bottom: 100px; right: 8px; left: auto; padding: 6px 8px; font-size: 14px; z-index: 15; }
+    #btn-theme { top: auto; bottom: 64px; right: 8px; left: auto; padding: 6px 8px; font-size: 14px; z-index: 15; }
+
+    /* Mobile reload button */
+    #btn-mobile-reload { display: flex; }
+
+    /* Stats grid smaller */
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .stat-val { font-size: 20px; }
+
+    /* Palace title smaller */
+    .palace-title { font-size: 18px; }
+
+    /* Panel tabs smaller */
+    .panel-tab { font-size: 9px; padding: 6px 0; }
+
+    /* Detail content max-height smaller */
+    .detail-content { max-height: 200px; }
+
+    /* Room legend compact */
+    .room-legend { gap: 4px; }
+    .room-chip { padding: 3px 8px; font-size: 10px; }
+  }
+
+  @media (max-width: 480px) {
+    #controls button { padding: 5px 8px; font-size: 10px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-card { padding: 8px; }
+    .stat-val { font-size: 18px; }
+    .palace-title { font-size: 16px; }
+    #panel { height: 60vh; }
+    #timeline-bar { display: none; }
+  }
+
+  /* Desktop: hide mobile pull tab */
+  @media (min-width: 901px) {
+    #mobile-pull-tab { display: none; }
+  }
+
+  /* ── Node breathing — only room nodes, not all 800 circles ── */
+  .node-group[data-type="room"] .node-core { animation: nodeBreathe 3s ease-in-out infinite; }
+  @keyframes nodeBreathe { 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
+
+  /* ── Energy ripple from root ── */
+  .energy-ripple {
+    fill: none;
+    stroke: var(--cyan);
+    stroke-width: 1;
+    opacity: 0;
+    animation: rippleExpand 4s ease-out infinite;
+    pointer-events: none;
+  }
+  .energy-ripple:nth-child(2) { animation-delay: 1.33s; }
+  .energy-ripple:nth-child(3) { animation-delay: 2.66s; }
+  @keyframes rippleExpand {
+    0% { r: 30; opacity: 0.4; stroke-width: 2; }
+    100% { r: 250; opacity: 0; stroke-width: 0.5; }
+  }
+
+  /* ── Tooltip ── */
+  #tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--bg-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 12px;
+    max-width: 320px;
+    z-index: 20;
+    display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  #tooltip .tt-title { font: 600 13px 'Space Grotesk', sans-serif; margin-bottom: 4px; }
+  #tooltip .tt-room { font: 500 10px 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+  #tooltip .tt-meta { color: var(--fg-dim); font: 400 11px 'JetBrains Mono', monospace; }
+
+  /* old responsive block removed — mobile styles live in the main @media block above */
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="universe">
+    <canvas id="stars-canvas"></canvas>
+    <canvas id="sparkle-canvas"></canvas>
+    <canvas id="crystal-canvas"></canvas>
+    <div id="svg-layer"><svg id="svg"></svg></div>
+    <div id="controls">
+      <div class="controls-row">
+        <button id="btn-reset">Reset</button>
+        <button id="btn-explode">Explode</button>
+        <button id="btn-orbit">Orbit</button>
+        <button id="btn-cluster" class="active">Cluster</button>
+        <div id="search-box"><input id="q" type="search" placeholder="Search" autocomplete="off"></div>
+        <span id="search-count"></span>
+      </div>
+      <div class="controls-row">
+        <div id="color-mode-bar">
+          <button class="active" data-cmode="room">Room</button>
+          <button data-cmode="recency">Recency</button>
+          <button data-cmode="size">Size</button>
+          <button data-cmode="decay">Decay</button>
+          <button data-cmode="semantic">Topics</button>
+        </div>
+        <button class="filter-toggle" id="btn-filters" title="Date range filter">⚙ Filters</button>
+      </div>
+      <div class="controls-row controls-row-filters" id="filter-row">
+        <label>From</label><input type="date" id="filter-from">
+        <label>To</label><input type="date" id="filter-to">
+        <button class="filter-clear" id="filter-clear" title="Clear filters">✕</button>
+      </div>
+      <div id="cluster-legend"></div>
+    </div>
+    <button id="btn-fullscreen" title="Toggle fullscreen (F)">⛶</button>
+    <button id="btn-theme" title="Toggle theme">☀️</button>
+    <button id="btn-mobile-reload" title="Reload page" onclick="window.location.reload()">↻</button>
+    <div id="tooltip"></div>
+    <div class="refresh-bar"><div class="progress" id="refresh-progress"></div></div>
+    <div class="refresh-indicator"><span class="pulse-dot"></span><span id="refresh-label">Live · 274 drawers</span></div>
+    <div id="minimap"><canvas id="minimap-canvas"></canvas><div class="viewport-rect" id="minimap-vp"></div></div>
+    <div id="status-toast"></div>
+    <div id="kbd-hint">
+      <span><kbd>?</kbd> keys</span>
+      <span><kbd>⌘K</kbd> commands</span>
+      <span><kbd>F</kbd> fullscreen</span>
+      <span><kbd>J</kbd><kbd>K</kbd> navigate</span>
+      <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> layout</span>
+    </div>
+    <div id="timeline-bar">
+      <button id="timeline-play" title="Play/Pause timeline">▶</button>
+      <input type="range" id="timeline-slider" min="0" max="100" value="100" step="1">
+      <span id="timeline-date">All time</span>
+      <span id="timeline-count"></span>
+    </div>
+  </div>
+  <aside id="panel">
+    <div id="mobile-pull-tab"></div>
+    <div id="panel-header">
+      <div class="palace-title">MemPalaceViz</div>
+      <div class="palace-sub">wing demo · crystal fortress</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="s-drawers">0</div><div class="stat-label">Drawers</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-rooms">0</div><div class="stat-label">Rooms</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-wing">1</div><div class="stat-label">Wing</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-sources">0</div><div class="stat-label">Sources</div></div>
+      </div>
+    </div>
+    <div id="panel-scroll">
+      <div class="section-label">Rooms</div>
+      <div class="room-legend" id="legend"></div>
+      <div id="dash-controls">
+        <button class="dash-btn" id="btn-refresh" title="Refresh data from server"><span class="icon">⟳</span> Refresh</button>
+        <button class="dash-btn" id="btn-status" title="Show server status"><span class="icon">◉</span> Status</button>
+        <button class="dash-btn" id="btn-local" title="Toggle local graph (2-hop)"><span class="icon">◎</span> Local</button>
+        <button class="dash-btn" id="btn-export" title="Export palace data as JSON"><span class="icon">↓</span> Export</button>
+      </div>
+      <div class="panel-tabs">
+        <button class="panel-tab active" data-tab="selection">Selection</button>
+        <button class="panel-tab" data-tab="list">List</button>
+        <button class="panel-tab" data-tab="stats">Insights</button>
+        <button class="panel-tab" data-tab="add">+ Add</button>
+      </div>
+      <div id="tab-selection">
+        <div id="detail"><div class="detail-empty">Click a node to inspect a memory.</div></div>
+      </div>
+      <div id="drawer-list"></div>
+      <div id="stats-panel"></div>
+      <div id="add-drawer-panel">
+        <div class="add-form-group">
+          <label for="add-room">Room</label>
+          <select id="add-room">
+            <option value="">Select a room…</option>
+            <option value="projects">🟠 projects</option>
+            <option value="work">🟡 work</option>
+            <option value="education">🔵 education</option>
+            <option value="learning">🟢 learning</option>
+            <option value="personal">🟣 personal</option>
+            <option value="identity">🔴 identity</option>
+            <option value="tools">🟡 tools</option>
+            <option value="memory_inbox">🔵 memory_inbox</option>
+          </select>
+        </div>
+        <div class="add-form-group">
+          <label for="add-source">Source <span style="opacity:0.5">(optional)</span></label>
+          <input type="text" id="add-source" placeholder="e.g. claude-session, manual, article-url">
+        </div>
+        <div class="add-form-group">
+          <label for="add-content">Content</label>
+          <textarea id="add-content" placeholder="Verbatim content to store — exact words, never summarized."></textarea>
+          <div class="add-char-count"><span id="add-char-num">0</span> chars</div>
+        </div>
+        <button id="add-submit-btn" disabled>Add to Palace</button>
+        <div id="add-form-status"></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div id="cmd-overlay">
+  <div id="cmd-box">
+    <input id="cmd-input" type="text" placeholder="Type a command… (Ctrl+K)" autocomplete="off">
+    <div id="cmd-results"></div>
+  </div>
+</div>
+
+<div id="kb-overlay">
+  <div id="kb-box" style="position:relative">
+    <button id="kb-close">✕</button>
+    <h2>Keyboard Reference</h2>
+    <div class="kb-section">
+      <div class="kb-section-title">Navigation</div>
+      <div class="kb-row"><span class="kb-row-label">Cycle through drawers</span><div class="kb-row-keys"><kbd>J</kbd> <kbd>K</kbd></div></div>
+      <div class="kb-row"><span class="kb-row-label">Open detail for selected</span><div class="kb-row-keys"><kbd>Enter</kbd></div></div>
+      <div class="kb-row"><span class="kb-row-label">Deselect / exit mode</span><div class="kb-row-keys"><kbd>Esc</kbd></div></div>
+    </div>
+    <div class="kb-section">
+      <div class="kb-section-title">Layout Modes</div>
+      <div class="kb-row"><span class="kb-row-label">Explode</span><div class="kb-row-keys"><kbd>1</kbd></div></div>
+      <div class="kb-row"><span class="kb-row-label">Orbit</span><div class="kb-row-keys"><kbd>2</kbd></div></div>
+      <div class="kb-row"><span class="kb-row-label">Cluster</span><div class="kb-row-keys"><kbd>3</kbd></div></div>
+    </div>
+    <div class="kb-section">
+      <div class="kb-section-title">Views & Modes</div>
+      <div class="kb-row"><span class="kb-row-label">Toggle fullscreen</span><div class="kb-row-keys"><kbd>F</kbd></div></div>
+      <div class="kb-row"><span class="kb-row-label">Toggle local graph (2-hop)</span><div class="kb-row-keys"><kbd>L</kbd></div></div>
+      <div class="kb-row"><span class="kb-row-label">Room deep-dive</span><div class="kb-row-keys"><span style="color:var(--fg-dim);font-size:11px">Double-click room</span></div></div>
+    </div>
+    <div class="kb-section">
+      <div class="kb-section-title">Actions</div>
+      <div class="kb-row"><span class="kb-row-label">Command palette</span><div class="kb-row-keys"><kbd>Ctrl</kbd><kbd>K</kbd></div></div>
+      <div class="kb-row"><span class="kb-row-label">Refresh data</span><div class="kb-row-keys"><kbd>R</kbd></div></div>
+      <div class="kb-row"><span class="kb-row-label">Save screenshot</span><div class="kb-row-keys"><kbd>P</kbd></div></div>
+      <div class="kb-row"><span class="kb-row-label">Show this reference</span><div class="kb-row-keys"><kbd>?</kbd></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PALACE = null; // No embedded data — loads demo-palace.json automatically
+
+// ── Particle Starfield ──
+(function initStars() {
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  const STAR_COUNT = 200;
+  const NEBULA_COUNT = 5;
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function createParticles() {
+    particles = [];
+    for (let i = 0; i < STAR_COUNT; i++) {
+      particles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.5 + 0.3,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        alpha: Math.random() * 0.6 + 0.2,
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: Math.random() * 0.02 + 0.005,
+        color: Math.random() > 0.7 ? '#4dd9e8' : (Math.random() > 0.5 ? '#6b3fa0' : '#ffffff'),
+      });
+    }
+  }
+
+  function drawNebula() {
+    const nebulae = [
+      { x: W * 0.2, y: H * 0.3, r: 300, color: 'rgba(77,217,232,0.015)' },
+      { x: W * 0.8, y: H * 0.7, r: 250, color: 'rgba(107,63,160,0.02)' },
+      { x: W * 0.5, y: H * 0.5, r: 400, color: 'rgba(201,77,232,0.008)' },
+    ];
+    nebulae.forEach(n => {
+      const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+      grad.addColorStop(0, n.color);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    drawNebula();
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.pulse += p.pulseSpeed;
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H;
+      if (p.y > H) p.y = 0;
+      const a = p.alpha * (0.5 + 0.5 * Math.sin(p.pulse));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color.replace(')', `,${a})`).replace('rgb', 'rgba').replace('##', '#');
+      // Simpler approach for hex colors
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      // Glow for larger stars
+      if (p.r > 1) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+        ctx.globalAlpha = a * 0.15;
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    });
+    requestAnimationFrame(animate);
+  }
+
+  // ── Shooting Stars ──
+  let shootingStars = [];
+  function spawnShootingStar() {
+    shootingStars.push({
+      x: Math.random() * W * 0.3,
+      y: Math.random() * H * 0.3,
+      vx: 3 + Math.random() * 4,
+      vy: 1.5 + Math.random() * 2,
+      life: 60 + Math.random() * 40,
+      age: 0,
+      len: 30 + Math.random() * 50,
+    });
+  }
+  setInterval(spawnShootingStar, 4000);
+
+  function drawShootingStars() {
+    shootingStars = shootingStars.filter(s => s.age < s.life);
+    shootingStars.forEach(s => {
+      s.x += s.vx;
+      s.y += s.vy;
+      s.age++;
+      const progress = s.age / s.life;
+      const alpha = progress < 0.2 ? progress * 5 : (1 - progress) * 1.25;
+      const grad = ctx.createLinearGradient(s.x, s.y, s.x - s.vx * s.len / 4, s.y - s.vy * s.len / 4);
+      grad.addColorStop(0, `rgba(77,217,232,${alpha})`);
+      grad.addColorStop(1, 'rgba(77,217,232,0)');
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y);
+      ctx.lineTo(s.x - s.vx * s.len / 4, s.y - s.vy * s.len / 4);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.fill();
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    drawNebula();
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.pulse += p.pulseSpeed;
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H;
+      if (p.y > H) p.y = 0;
+      const a = p.alpha * (0.5 + 0.5 * Math.sin(p.pulse));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      if (p.r > 1) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+        ctx.globalAlpha = a * 0.15;
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    });
+    drawShootingStars();
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', () => { resize(); createParticles(); });
+  resize();
+  createParticles();
+  animate();
+})();
+
+// ── Light Mode Sparkle Glitter ──
+(function initSparkles() {
+  var canvas = document.getElementById('sparkle-canvas');
+  var ctx = canvas.getContext('2d');
+  var W, H;
+  var sparkles = [];
+  var SPARKLE_COUNT = 180;
+
+  var COLORS = [
+    { r: 8, g: 145, b: 178 },     // cyan
+    { r: 124, g: 58, b: 237 },    // purple
+    { r: 180, g: 180, b: 200 },   // silver
+    { r: 200, g: 175, b: 100 },   // gold
+    { r: 168, g: 85, b: 247 },    // magenta
+    { r: 100, g: 120, b: 160 },   // steel blue
+  ];
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function createSparkles() {
+    sparkles = [];
+    for (var i = 0; i < SPARKLE_COUNT; i++) {
+      var c = COLORS[Math.floor(Math.random() * COLORS.length)];
+      sparkles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.8 + 0.4,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.015 + 0.005,
+        peakAlpha: Math.random() * 0.55 + 0.25,
+        glint: Math.random() > 0.65,
+        glintLen: Math.random() * 6 + 4,
+        color: c,
+        drift: {
+          vx: (Math.random() - 0.5) * 0.08,
+          vy: (Math.random() - 0.5) * 0.06,
+        },
+      });
+    }
+  }
+
+  function drawSparkle(s, alpha) {
+    var cr = s.color.r, cg = s.color.g, cb = s.color.b;
+
+    // Core dot
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(' + cr + ',' + cg + ',' + cb + ',1)';
+    ctx.fill();
+
+    // Soft glow halo
+    ctx.globalAlpha = alpha * 0.2;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r * 4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(' + cr + ',' + cg + ',' + cb + ',1)';
+    ctx.fill();
+
+    // Cross glint on larger sparkles when near peak
+    if (s.glint && alpha > s.peakAlpha * 0.7) {
+      var gl = s.glintLen * (alpha / s.peakAlpha);
+      ctx.globalAlpha = alpha * 0.6;
+      ctx.strokeStyle = 'rgba(' + cr + ',' + cg + ',' + cb + ',1)';
+      ctx.lineWidth = 0.8;
+      // Vertical line
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y - gl);
+      ctx.lineTo(s.x, s.y + gl);
+      ctx.stroke();
+      // Horizontal line
+      ctx.beginPath();
+      ctx.moveTo(s.x - gl, s.y);
+      ctx.lineTo(s.x + gl, s.y);
+      ctx.stroke();
+      // Diagonal accents (shorter)
+      ctx.globalAlpha = alpha * 0.25;
+      var dg = gl * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(s.x - dg, s.y - dg);
+      ctx.lineTo(s.x + dg, s.y + dg);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(s.x + dg, s.y - dg);
+      ctx.lineTo(s.x - dg, s.y + dg);
+      ctx.stroke();
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+
+    for (var i = 0; i < sparkles.length; i++) {
+      var s = sparkles[i];
+      s.phase += s.speed;
+
+      // Drift slowly
+      s.x += s.drift.vx;
+      s.y += s.drift.vy;
+      if (s.x < -10) s.x = W + 10;
+      if (s.x > W + 10) s.x = -10;
+      if (s.y < -10) s.y = H + 10;
+      if (s.y > H + 10) s.y = -10;
+
+      // Twinkle: mostly faint, occasional bright glint
+      var raw = Math.sin(s.phase);
+      // Sharpen the peak for sparkle effect, but keep a faint base glow
+      var alpha = raw > 0.1 ? s.peakAlpha * Math.pow((raw - 0.1) / 0.9, 1.5) : 0;
+      if (alpha > 0.01) {
+        drawSparkle(s, alpha);
+      }
+    }
+
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', function() { resize(); createSparkles(); });
+  resize();
+  createSparkles();
+  animate();
+})();
+
+// ── Floating Crystal Shards ──
+(function initCrystals() {
+  const canvas = document.getElementById('crystal-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  const SHARD_COUNT = 12;
+  let shards = [];
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function createShards() {
+    shards = [];
+    for (let i = 0; i < SHARD_COUNT; i++) {
+      shards.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        size: 8 + Math.random() * 25,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.008,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.2,
+        alpha: 0.03 + Math.random() * 0.06,
+        sides: Math.random() > 0.5 ? 6 : 4,
+        color: Math.random() > 0.6 ? '#4dd9e8' : '#6b3fa0',
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.01 + Math.random() * 0.015,
+      });
+    }
+  }
+
+  function drawShard(s) {
+    s.pulse += s.pulseSpeed;
+    const alphaOsc = s.alpha * (0.6 + 0.4 * Math.sin(s.pulse));
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.rotation);
+    ctx.globalAlpha = alphaOsc;
+    ctx.beginPath();
+    for (let j = 0; j < s.sides; j++) {
+      const angle = (Math.PI * 2 / s.sides) * j - Math.PI / 2;
+      const r = j % 2 === 0 ? s.size : s.size * 0.6;
+      ctx[j === 0 ? 'moveTo' : 'lineTo'](Math.cos(angle) * r, Math.sin(angle) * r);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // inner glow
+    ctx.fillStyle = s.color;
+    ctx.globalAlpha = alphaOsc * 0.15;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    shards.forEach(s => {
+      s.x += s.vx;
+      s.y += s.vy;
+      s.rotation += s.rotSpeed;
+      if (s.x < -50) s.x = W + 50;
+      if (s.x > W + 50) s.x = -50;
+      if (s.y < -50) s.y = H + 50;
+      if (s.y > H + 50) s.y = -50;
+      drawShard(s);
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', () => { resize(); createShards(); });
+  resize();
+  createShards();
+  animate();
+})();
+
+// ── Room Colors ──
+const ROOM_COLORS = {
+  projects: '#f778ba', work: '#ffa657', education: '#79c0ff',
+  learning: '#7ee787', personal: '#d2a8ff', identity: '#ff9b9b',
+  tools: '#ffd166', memory_inbox: '#8ddbe0',
+};
+
+// ── State ──
+let simulation, nodes = [], links = [], svgG, svgLinks, svgNodes;
+let currentMode = 'cluster';
+let selectedNode = null;
+let filterRoom = null;
+let palace = null;
+let W, H;
+
+// ── Boot ──
+function boot() {
+  if (PALACE) {
+    palace = PALACE;
+    render(palace);
+  } else {
+    fetchLive();
+  }
+}
+
+// ── Demo Mode (loads sanitized sample data when no MCP server available) ──
+async function loadDemoData() {
+  try {
+    const resp = await fetch('demo-palace.json');
+    if (!resp.ok) throw new Error('No demo data');
+    palace = await resp.json();
+    render(palace);
+    document.getElementById('refresh-label').textContent = 'Demo · ' + palace.total_drawers + ' drawers';
+    showToast('Running in demo mode — connect an MCP server for live data');
+  } catch (e) {
+    console.warn('Demo data not available:', e);
+    document.getElementById('refresh-label').textContent = 'No data — connect MCP server';
+  }
+}
+
+// ── Live fetch via MCP (proxied through CF Pages Function) ──
+const MCP_PROXY = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? '/api/mcp'                            // local dev — update to your production URL if needed
+  : '/api/mcp';                           // production uses relative path
+let sessionId = null;
+
+async function mpcCall(method, params, id = 1) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json, text/event-stream',
+  };
+  if (sessionId) headers['Mcp-Session-Id'] = sessionId;
+  const resp = await fetch(MCP_PROXY, {
+    method: 'POST', headers,
+    body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
+  });
+  if (!sessionId) sessionId = resp.headers.get('Mcp-Session-Id');
+  const text = await resp.text();
+  return JSON.parse(text.split('\n')[0]);
+}
+
+async function fetchLive(silent) {
+  try {
+    if (!silent) document.getElementById('refresh-label').textContent = 'Connecting…';
+    sessionId = null; // fresh session each fetch
+    await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: '3' } });
+
+    // Get status
+    const statusResp = await mpcCall('tools/call', { name: 'mempalace_status', arguments: {} }, 2);
+    const status = JSON.parse(statusResp.result.content[0].text);
+
+    // Get all rooms via search (traverse requires start_room param, search is more reliable)
+    const rooms = Object.keys(status.rooms);
+    const palaceData = { wing: 'demo', total_drawers: status.total_drawers, rooms: [] };
+
+    for (let i = 0; i < rooms.length; i++) {
+      const roomName = rooms[i];
+      const resp = await mpcCall('tools/call', { name: 'mempalace_search', arguments: { query: '*', room: roomName, limit: 500 } }, 10 + i);
+      const content = JSON.parse(resp.result.content[0].text);
+      const results = content.results || content.drawers || [];
+      const drawers = results.map(d => ({
+        t: (d.title || d.text || '').substring(0, 90),
+        s: d.source_file || d.metadata?.source_file || '',
+        l: (d.text || '').length,
+        p: d.text || '',
+        d: d.metadata?.filed_at || d.filed_at || '',
+      }));
+      palaceData.rooms.push({ name: roomName, drawers });
+    }
+
+    const prevCount = palace ? palace.total_drawers : 0;
+    palace = palaceData;
+    render(palace);
+    const delta = palaceData.total_drawers - prevCount;
+    const deltaStr = delta > 0 ? ` (+${delta})` : '';
+    document.getElementById('refresh-label').textContent = `Live · ${status.total_drawers} drawers${deltaStr}`;
+    lastRefreshTime = Date.now();
+    if (silent && delta > 0) showToast(`${delta} new drawer${delta > 1 ? 's' : ''} detected`);
+    scheduleRefresh();
+  } catch (e) {
+    console.warn('Live fetch failed, using embedded data if available:', e);
+    document.getElementById('refresh-label').textContent = 'Offline · cached data';
+    if (!palace && PALACE) { palace = PALACE; render(palace); }
+    else if (!palace) { loadDemoData(); }
+  }
+}
+
+function scheduleRefresh() {
+  let elapsed = 0;
+  const interval = 120; // seconds
+  const prog = document.getElementById('refresh-progress');
+  const timer = setInterval(() => {
+    elapsed++;
+    prog.style.width = (elapsed / interval * 100) + '%';
+    if (elapsed >= interval) {
+      clearInterval(timer);
+      prog.style.width = '0%';
+      fetchLive();
+    }
+  }, 1000);
+}
+
+// ── Render ──
+function render(data) {
+  nodes = [];
+  links = [];
+
+  // Root node
+  const rootNode = { id: 'root', label: 'demo', type: 'root', r: 28, color: '#4dd9e8' };
+  nodes.push(rootNode);
+
+  let totalDrawers = 0;
+  const sources = new Set();
+
+  data.rooms.forEach(room => {
+    const roomColor = ROOM_COLORS[room.name] || '#8ddbe0';
+    const roomNode = { id: 'room_' + room.name, label: room.name, type: 'room', r: 14 + Math.sqrt(room.drawers.length) * 2, color: roomColor, room: room.name, count: room.drawers.length };
+    nodes.push(roomNode);
+    links.push({ source: 'root', target: roomNode.id, type: 'room-link' });
+
+    room.drawers.forEach((d, i) => {
+      const did = 'drawer_' + room.name + '_' + i;
+      nodes.push({ id: did, label: d.t, type: 'drawer', r: 3 + Math.min(Math.sqrt(d.l / 100), 6), color: roomColor, room: room.name, data: d });
+      links.push({ source: roomNode.id, target: did, type: 'drawer-link' });
+      sources.add(d.s);
+      totalDrawers++;
+    });
+  });
+
+  // Stats
+  document.getElementById('s-drawers').textContent = totalDrawers;
+  document.getElementById('s-rooms').textContent = data.rooms.length;
+  document.getElementById('s-sources').textContent = sources.size;
+
+  // Legend
+  const legend = document.getElementById('legend');
+  legend.innerHTML = '';
+  data.rooms.forEach(room => {
+    const color = ROOM_COLORS[room.name] || '#8ddbe0';
+    const chip = document.createElement('div');
+    chip.className = 'room-chip active';
+    chip.dataset.room = room.name;
+    chip.style.color = color;
+    chip.innerHTML = `<span class="room-dot" style="background:${color}"></span>${room.name}<span class="room-count">${room.drawers.length}</span>`;
+    chip.onclick = () => toggleRoomFilter(room.name);
+    legend.appendChild(chip);
+  });
+
+  buildForceGraph();
+}
+
+// ── Force Graph ──
+function buildForceGraph() {
+  const svg = d3.select('#svg-layer svg');
+  svg.selectAll('*').remove();
+
+  const svgEl = svg.node();
+  W = svgEl.clientWidth;
+  H = svgEl.clientHeight;
+
+  // Defs for glows
+  const defs = svg.append('defs');
+  Object.entries(ROOM_COLORS).forEach(([name, color]) => {
+    const filter = defs.append('filter').attr('id', 'glow-' + name).attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+    filter.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'blur');
+    filter.append('feFlood').attr('flood-color', color).attr('flood-opacity', '0.6');
+    filter.append('feComposite').attr('in2', 'blur').attr('operator', 'in');
+    const merge = filter.append('feMerge');
+    merge.append('feMergeNode');
+    merge.append('feMergeNode').attr('in', 'SourceGraphic');
+  });
+
+  // Root glow
+  const rootGlow = defs.append('filter').attr('id', 'glow-root').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+  rootGlow.append('feGaussianBlur').attr('stdDeviation', '6').attr('result', 'blur');
+  rootGlow.append('feFlood').attr('flood-color', '#4dd9e8').attr('flood-opacity', '0.5');
+  rootGlow.append('feComposite').attr('in2', 'blur').attr('operator', 'in');
+  const rootMerge = rootGlow.append('feMerge');
+  rootMerge.append('feMergeNode');
+  rootMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+  svgG = svg.append('g');
+
+  // Links
+  svgLinks = svgG.selectAll('.link')
+    .data(links)
+    .join('line')
+    .attr('class', d => 'link ' + (d.type || ''));
+
+  // Nodes
+  svgNodes = svgG.selectAll('.node-group')
+    .data(nodes, d => d.id)
+    .join('g')
+    .attr('class', 'node-group')
+    .attr('data-type', d => d.type)
+    .on('click', (e, d) => selectNode(d))
+    .on('dblclick', (e, d) => { if (d.type === 'room') enterDeepDive(d); })
+    .on('mouseenter', (e, d) => showTooltip(e, d))
+    .on('mouseleave', hideTooltip);
+
+  // Glow circle (behind)
+  svgNodes.append('circle')
+    .attr('class', 'node-glow')
+    .attr('r', d => d.r * 2.5)
+    .attr('fill', d => d.color)
+    .attr('opacity', 0)
+    .attr('filter', d => d.type === 'root' ? 'url(#glow-root)' : (d.room ? `url(#glow-${d.room})` : ''));
+
+  // Selection ring
+  svgNodes.append('circle')
+    .attr('class', 'node-ring')
+    .attr('r', d => d.r + 4)
+    .attr('fill', 'none')
+    .attr('stroke', d => d.color)
+    .attr('stroke-width', 2)
+    .attr('stroke-dasharray', '4,3')
+    .attr('opacity', 0);
+
+  // Main circle
+  svgNodes.append('circle')
+    .attr('class', 'node-core')
+    .attr('r', d => d.r)
+    .attr('fill', d => {
+      if (d.type === 'root') return 'url(#grad-root)';
+      return d.color;
+    })
+    .attr('opacity', d => d.type === 'drawer' ? 0.7 : 0.9)
+    .attr('stroke', d => d.type !== 'drawer' ? 'rgba(255,255,255,0.15)' : 'none')
+    .attr('stroke-width', d => d.type !== 'drawer' ? 1.5 : 0);
+
+  // Root gradient
+  const rootGrad = defs.append('radialGradient').attr('id', 'grad-root');
+  rootGrad.append('stop').attr('offset', '0%').attr('stop-color', '#4dd9e8');
+  rootGrad.append('stop').attr('offset', '100%').attr('stop-color', '#6b3fa0');
+
+  // Labels for root and rooms
+  svgNodes.filter(d => d.type === 'root').append('text')
+    .attr('class', 'node-label')
+    .attr('dy', '0.35em')
+    .attr('font-size', '14px')
+    .attr('font-weight', '700')
+    .text('⬡');
+
+  svgNodes.filter(d => d.type === 'room').append('text')
+    .attr('class', 'node-label')
+    .attr('dy', '0.35em')
+    .attr('font-size', '10px')
+    .attr('font-weight', '600')
+    .attr('letter-spacing', '0.5px')
+    .text(d => d.label.length > 8 ? d.label.substring(0, 7) + '…' : d.label);
+
+  // Drawer labels (hidden by default, shown on deep-dive zoom)
+  svgNodes.filter(d => d.type === 'drawer').append('text')
+    .attr('class', 'node-label-drawer')
+    .attr('dy', d => d.r + 10)
+    .text(d => d.label.length > 20 ? d.label.substring(0, 18) + '…' : d.label);
+
+  // Energy ripples from root
+  const rootData = nodes.find(n => n.type === 'root');
+  const rippleG = svgG.append('g').attr('class', 'ripple-container');
+  for (let i = 0; i < 3; i++) {
+    rippleG.append('circle')
+      .attr('class', 'energy-ripple')
+      .attr('cx', 0).attr('cy', 0)
+      .attr('r', 30);
+  }
+
+  // Energy flow particles along links
+  const flowParticles = [];
+  const FLOW_COUNT = 40;
+  function initFlowParticles() {
+    flowParticles.length = 0;
+    for (let i = 0; i < FLOW_COUNT; i++) {
+      const link = links[Math.floor(Math.random() * links.length)];
+      flowParticles.push({
+        link: link,
+        t: Math.random(),
+        speed: 0.003 + Math.random() * 0.006,
+        size: 1 + Math.random() * 1.5,
+      });
+    }
+  }
+  initFlowParticles();
+
+  const flowG = svgG.append('g').attr('class', 'flow-particles');
+  const flowDots = flowG.selectAll('circle')
+    .data(flowParticles)
+    .join('circle')
+    .attr('r', d => d.size)
+    .attr('fill', '#4dd9e8')
+    .attr('opacity', 0.6);
+
+  // Zoom
+  const zoom = d3.zoom()
+    .scaleExtent([0.3, 5])
+    .on('zoom', (e) => svgG.attr('transform', e.transform));
+  svg.call(zoom);
+
+  document.getElementById('btn-reset').onclick = () => {
+    svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+    selectedNode = null;
+    svgNodes.classed('selected', false);
+    svgNodes.classed('dim', false);
+    svgLinks.style('display', null);
+    exitDeepDive();
+    if (localGraphMode) exitLocalGraph();
+    document.getElementById('detail').innerHTML = '<div class="detail-empty">Click a node to inspect a memory.</div>';
+  };
+
+  // Simulation
+  simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(d => d.type === 'room-link' ? 120 : 40).strength(d => d.type === 'room-link' ? 0.4 : 0.2))
+    .force('charge', d3.forceManyBody().strength(d => d.type === 'root' ? -600 : d.type === 'room' ? -200 : -15))
+    .force('center', d3.forceCenter(W / 2, H / 2))
+    .force('collision', d3.forceCollide().radius(d => d.r + 2))
+    .force('x', d3.forceX(W / 2).strength(0.03))
+    .force('y', d3.forceY(H / 2).strength(0.03))
+    .alphaDecay(0.015)
+    .on('tick', ticked);
+
+  // Drag
+  svgNodes.call(d3.drag()
+    .on('start', (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+    .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+    .on('end', (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
+  );
+
+  // Mode buttons
+  document.getElementById('btn-explode').onclick = () => setMode('explode');
+  document.getElementById('btn-orbit').onclick = () => setMode('orbit');
+  document.getElementById('btn-cluster').onclick = () => setMode('cluster');
+
+  setMode('cluster');
+}
+
+function ticked() {
+  svgLinks
+    .attr('x1', d => d.source.x)
+    .attr('y1', d => d.source.y)
+    .attr('x2', d => d.target.x)
+    .attr('y2', d => d.target.y);
+
+  svgNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
+
+  // Animate ring rotation on selected
+  if (selectedNode) {
+    const t = Date.now() / 2000;
+    svgNodes.filter(d => d === selectedNode).select('.node-ring')
+      .attr('stroke-dashoffset', t * 20 % 100);
+  }
+
+  // Energy ripples follow root position
+  const rootN = nodes.find(n => n.type === 'root');
+  if (rootN) {
+    d3.select('.ripple-container').attr('transform', `translate(${rootN.x || 0},${rootN.y || 0})`);
+  }
+
+  // Energy flow particles
+  if (typeof flowParticles !== 'undefined') {
+    flowParticles.forEach(fp => {
+      fp.t += fp.speed;
+      if (fp.t > 1) {
+        fp.t = 0;
+        fp.link = links[Math.floor(Math.random() * links.length)];
+      }
+    });
+    d3.selectAll('.flow-particles circle')
+      .attr('cx', d => {
+        const s = typeof d.link.source === 'object' ? d.link.source : { x: 0 };
+        const t = typeof d.link.target === 'object' ? d.link.target : { x: 0 };
+        return s.x + (t.x - s.x) * d.t;
+      })
+      .attr('cy', d => {
+        const s = typeof d.link.source === 'object' ? d.link.source : { y: 0 };
+        const t = typeof d.link.target === 'object' ? d.link.target : { y: 0 };
+        return s.y + (t.y - s.y) * d.t;
+      })
+      .attr('opacity', d => {
+        const fade = d.t < 0.1 ? d.t * 10 : (d.t > 0.9 ? (1 - d.t) * 10 : 0.5);
+        return fade;
+      });
+  }
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + mode).classList.add('active');
+
+  if (mode === 'explode') {
+    simulation.force('link').distance(d => d.type === 'room-link' ? 140 : 50).strength(d => d.type === 'room-link' ? 0.3 : 0.15);
+    simulation.force('charge').strength(d => d.type === 'root' ? -800 : d.type === 'room' ? -300 : -20);
+    simulation.force('x').strength(0.02);
+    simulation.force('y').strength(0.02);
+  } else if (mode === 'orbit') {
+    simulation.force('link').distance(d => d.type === 'room-link' ? 200 : 30).strength(d => d.type === 'room-link' ? 0.6 : 0.4);
+    simulation.force('charge').strength(d => d.type === 'root' ? -500 : d.type === 'room' ? -150 : -8);
+    simulation.force('x').strength(0.05);
+    simulation.force('y').strength(0.05);
+    // Gentle orbital drift — runs only in orbit mode
+    if (window._orbitTimer) clearInterval(window._orbitTimer);
+    window._orbitTimer = setInterval(() => {
+      if (currentMode !== 'orbit' || !simulation) return;
+      const rootN = nodes.find(r => r.type === 'root');
+      if (!rootN) return;
+      nodes.forEach(n => {
+        if (n.type !== 'drawer' || n.fx) return;
+        const dx = n.x - rootN.x;
+        const dy = n.y - rootN.y;
+        n.vx += -dy * 0.00003;
+        n.vy += dx * 0.00003;
+      });
+      simulation.alpha(Math.max(simulation.alpha(), 0.01));
+    }, 200);
+  } else if (mode === 'cluster') {
+    simulation.force('link').distance(d => d.type === 'room-link' ? 80 : 20).strength(d => d.type === 'room-link' ? 0.8 : 0.6);
+    simulation.force('charge').strength(d => d.type === 'root' ? -400 : d.type === 'room' ? -80 : -5);
+    simulation.force('x').strength(0.08);
+    simulation.force('y').strength(0.08);
+  }
+
+  simulation.alpha(0.8).restart();
+}
+
+// ── Interaction ──
+function selectNode(d) {
+  selectedNode = d;
+  svgNodes.classed('selected', n => n === d);
+  showDetail(d);
+}
+
+function showDetail(d) {
+  const el = document.getElementById('detail');
+  if (d.type === 'root') {
+    el.innerHTML = `
+      <div class="detail-title" style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">MemPalaceViz Core</div>
+      <div class="detail-meta">Wing demo · ${palace.total_drawers} drawers · ${palace.rooms.length} rooms</div>
+      <div class="detail-content"><p>The central nexus of your personal knowledge base. Every memory, project, and insight radiates from this core.</p></div>`;
+    return;
+  }
+  if (d.type === 'room') {
+    el.innerHTML = `
+      <div class="detail-room-badge" style="background:${d.color}22;color:${d.color}">${d.label}</div>
+      <div class="detail-title">${escHtml(d.label)} Room</div>
+      <div class="detail-meta">${d.count} drawers</div>
+      <div class="detail-content"><p>This room contains ${d.count} memories organized under the <strong>${d.label}</strong> category.</p></div>`;
+    return;
+  }
+  // Drawer
+  const data = d.data;
+  const preview = data.p || '';
+  let rendered = preview ? DOMPurify.sanitize(marked.parse(preview)) : '<em>No preview available.</em>';
+  // Highlight search terms
+  if (currentSearchTerm) {
+    const re = new RegExp('(' + currentSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    rendered = rendered.replace(re, '<mark>$1</mark>');
+  }
+  const dateStr = data.d ? new Date(data.d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+  el.innerHTML = `
+    <div class="detail-room-badge" style="background:${d.color}22;color:${d.color}">${d.room}</div>
+    <div class="detail-title">${escHtml(data.t)}</div>
+    <div class="detail-meta">source: ${escHtml(data.s)} · ${data.l.toLocaleString()} chars${dateStr ? ' · ' + dateStr : ''}</div>
+    <div class="detail-content">${rendered}</div>
+    <div class="detail-actions">
+      <button class="btn-tunnels" onclick="findTunnels('${escHtml(data.t).replace(/'/g, "\\'")}')">🔗 Tunnels</button>
+      <button class="btn-danger" onclick="deleteDrawer(this, '${escHtml(data.t).replace(/'/g, "\\'")}', '${d.room}')">🗑 Delete</button>
+    </div>`;
+}
+
+function showTooltip(e, d) {
+  if (d.type === 'root') return;
+  const tip = document.getElementById('tooltip');
+  const color = d.color;
+  tip.innerHTML = `
+    <div class="tt-room" style="color:${color}">${d.room || 'palace'}</div>
+    <div class="tt-title">${escHtml(d.label)}</div>
+    ${d.type === 'room' ? `<div class="tt-meta">${d.count} drawers</div>` : `<div class="tt-meta">${(d.data?.l || 0).toLocaleString()} chars · ${escHtml(d.data?.s || '')}</div>`}`;
+  tip.style.display = 'block';
+  tip.style.left = (e.pageX + 14) + 'px';
+  tip.style.top = (e.pageY - 10) + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// ── Room Filter ──
+function toggleRoomFilter(name) {
+  if (filterRoom === name) {
+    filterRoom = null;
+    document.querySelectorAll('.room-chip').forEach(c => c.classList.remove('dim'));
+    svgNodes.classed('dim', false);
+    svgLinks.style('display', null);
+  } else {
+    filterRoom = name;
+    document.querySelectorAll('.room-chip').forEach(c => {
+      c.classList.toggle('dim', c.dataset.room !== name);
+    });
+    svgNodes.classed('dim', d => d.type !== 'root' && d.room !== name);
+    svgLinks.style('display', d => {
+      const s = typeof d.source === 'object' ? d.source : nodes.find(n => n.id === d.source);
+      const t = typeof d.target === 'object' ? d.target : nodes.find(n => n.id === d.target);
+      if (s?.room === name || t?.room === name || s?.type === 'root' || t?.type === 'root') return null;
+      return 'none';
+    });
+  }
+}
+
+// ── Search ──
+// Search handler moved to initEnhancedSearch()
+
+function escHtml(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ── Status Toast ──
+let toastTimer = null;
+let lastRefreshTime = Date.now();
+function showToast(msg, duration) {
+  const el = document.getElementById('status-toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.display = 'none'; }, duration || 4000);
+}
+
+// ── Dashboard Controls ──
+function initDashControls() {
+  document.getElementById('btn-refresh').onclick = () => {
+    showToast('Refreshing from server…');
+    document.getElementById('btn-refresh').classList.add('active');
+    fetchLive(false).finally(() => {
+      document.getElementById('btn-refresh').classList.remove('active');
+      showToast('Data refreshed');
+    });
+  };
+
+  document.getElementById('btn-status').onclick = async () => {
+    try {
+      showToast('Fetching status…');
+      sessionId = null;
+      await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: '3' } });
+      const resp = await mpcCall('tools/call', { name: 'mempalace_status', arguments: {} }, 2);
+      const s = JSON.parse(resp.result.content[0].text);
+      const roomInfo = Object.entries(s.rooms).map(function(r) { return r[0] + ': ' + r[1]; }).join(', ');
+      showToast('Server OK · ' + s.total_drawers + ' drawers · Rooms: ' + roomInfo, 6000);
+    } catch (e) {
+      showToast('Status check failed: ' + e.message, 5000);
+    }
+  };
+
+  document.getElementById('btn-local').onclick = () => {
+    if (localGraphMode) {
+      exitLocalGraph();
+    } else if (selectedNode) {
+      enterLocalGraph(selectedNode);
+    } else {
+      showToast('Select a node first, then click Local');
+    }
+  };
+}
+
+// ── Local Graph Mode ──
+let localGraphMode = false;
+let localGraphCenter = null;
+const LOCAL_HOPS = 2;
+
+function enterLocalGraph(centerNode) {
+  localGraphMode = true;
+  localGraphCenter = centerNode;
+  document.getElementById('btn-local').classList.add('active');
+
+  // BFS to find N-hop neighborhood
+  const visited = new Set();
+  let frontier = [centerNode.id];
+  for (let hop = 0; hop <= LOCAL_HOPS; hop++) {
+    const next = [];
+    frontier.forEach(function(nid) {
+      if (visited.has(nid)) return;
+      visited.add(nid);
+      links.forEach(function(l) {
+        const sid = typeof l.source === 'object' ? l.source.id : l.source;
+        const tid = typeof l.target === 'object' ? l.target.id : l.target;
+        if (sid === nid && !visited.has(tid)) next.push(tid);
+        if (tid === nid && !visited.has(sid)) next.push(sid);
+      });
+    });
+    frontier = next;
+  }
+
+  // Dim non-local nodes
+  svgNodes.classed('dim', function(d) { return !visited.has(d.id); });
+  svgLinks.style('display', function(d) {
+    const sid = typeof d.source === 'object' ? d.source.id : d.source;
+    const tid = typeof d.target === 'object' ? d.target.id : d.target;
+    return (visited.has(sid) && visited.has(tid)) ? null : 'none';
+  });
+
+  // Show banner in detail panel
+  const detail = document.getElementById('detail');
+  const banner = document.createElement('div');
+  banner.className = 'local-graph-banner';
+  banner.id = 'local-banner';
+  banner.innerHTML = '<span>◎ Local graph: ' + LOCAL_HOPS + '-hop from "' + escHtml(centerNode.label).substring(0, 30) + '"</span><button onclick="exitLocalGraph()">Exit</button>';
+  detail.insertBefore(banner, detail.firstChild);
+
+  showToast('Local graph: showing ' + visited.size + ' connected nodes');
+}
+
+function exitLocalGraph() {
+  localGraphMode = false;
+  localGraphCenter = null;
+  document.getElementById('btn-local').classList.remove('active');
+  svgNodes.classed('dim', false);
+  svgLinks.style('display', null);
+  const banner = document.getElementById('local-banner');
+  if (banner) banner.remove();
+}
+
+// ── Mini-map ──
+function initMinimap() {
+  const mc = document.getElementById('minimap-canvas');
+  const mctx = mc.getContext('2d');
+  mc.width = 160;
+  mc.height = 110;
+
+  function drawMinimap() {
+    if (!nodes.length) { requestAnimationFrame(drawMinimap); return; }
+    mctx.clearRect(0, 0, 160, 110);
+
+    // Find bounds
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    nodes.forEach(function(n) {
+      if (n.x < minX) minX = n.x;
+      if (n.x > maxX) maxX = n.x;
+      if (n.y < minY) minY = n.y;
+      if (n.y > maxY) maxY = n.y;
+    });
+    const pad = 40;
+    minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+    const scaleX = 160 / (maxX - minX);
+    const scaleY = 110 / (maxY - minY);
+    const scale = Math.min(scaleX, scaleY);
+
+    // Draw links
+    mctx.strokeStyle = 'rgba(77,217,232,0.08)';
+    mctx.lineWidth = 0.3;
+    links.forEach(function(l) {
+      const s = typeof l.source === 'object' ? l.source : nodes.find(function(n) { return n.id === l.source; });
+      const t = typeof l.target === 'object' ? l.target : nodes.find(function(n) { return n.id === l.target; });
+      if (!s || !t) return;
+      mctx.beginPath();
+      mctx.moveTo((s.x - minX) * scale, (s.y - minY) * scale);
+      mctx.lineTo((t.x - minX) * scale, (t.y - minY) * scale);
+      mctx.stroke();
+    });
+
+    // Draw nodes
+    nodes.forEach(function(n) {
+      const x = (n.x - minX) * scale;
+      const y = (n.y - minY) * scale;
+      const r = n.type === 'root' ? 3 : n.type === 'room' ? 2 : 0.8;
+      mctx.beginPath();
+      mctx.arc(x, y, r, 0, Math.PI * 2);
+      mctx.fillStyle = n.color || '#4dd9e8';
+      mctx.globalAlpha = n.type === 'drawer' ? 0.5 : 0.9;
+      mctx.fill();
+      mctx.globalAlpha = 1;
+    });
+
+    // Draw viewport rectangle
+    const svg = document.querySelector('#svg-layer svg');
+    const transform = d3.zoomTransform(svg);
+    const vpX = (-transform.x / transform.k - minX) * scale;
+    const vpY = (-transform.y / transform.k - minY) * scale;
+    const vpW = (W / transform.k) * scale;
+    const vpH = (H / transform.k) * scale;
+    const vp = document.getElementById('minimap-vp');
+    vp.style.left = Math.max(0, vpX) + 'px';
+    vp.style.top = Math.max(0, vpY) + 'px';
+    vp.style.width = Math.min(160, vpW) + 'px';
+    vp.style.height = Math.min(110, vpH) + 'px';
+
+    requestAnimationFrame(drawMinimap);
+  }
+  drawMinimap();
+}
+
+// ── Keyboard Shortcuts ──
+function initKeyboard() {
+  document.addEventListener('keydown', function(e) {
+    // Skip if typing in search
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch(e.key) {
+      case 'j': case 'J': // Next node
+        cycleNode(1);
+        break;
+      case 'k': case 'K': // Previous node
+        cycleNode(-1);
+        break;
+      case 'Enter': // Open detail
+        if (selectedNode && selectedNode.type === 'drawer') {
+          showDetail(selectedNode);
+        }
+        break;
+      case 'Escape': // Deselect / exit local graph
+        if (localGraphMode) {
+          exitLocalGraph();
+        } else {
+          selectedNode = null;
+          svgNodes.classed('selected', false);
+          document.getElementById('detail').innerHTML = '<div class="detail-empty">Click a node to inspect a memory.</div>';
+        }
+        break;
+      case 'l': case 'L': // Toggle local graph
+        if (localGraphMode) exitLocalGraph();
+        else if (selectedNode) enterLocalGraph(selectedNode);
+        break;
+      case 'r': case 'R': // Refresh
+        if (!e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          document.getElementById('btn-refresh').click();
+        }
+        break;
+      case '1': setMode('explode'); break;
+      case '2': setMode('orbit'); break;
+      case '3': setMode('cluster'); break;
+      case 'f': case 'F':
+        if (!e.ctrlKey && !e.metaKey) document.getElementById('btn-fullscreen').click();
+        break;
+      case 'p': case 'P':
+        if (!e.ctrlKey && !e.metaKey) captureScreenshot();
+        break;
+      case '?':
+        toggleKbOverlay();
+        break;
+    }
+  });
+}
+
+let nodeIndex = -1;
+function cycleNode(dir) {
+  const drawerNodes = nodes.filter(function(n) { return n.type === 'drawer'; });
+  if (!drawerNodes.length) return;
+  if (selectedNode && selectedNode.type === 'drawer') {
+    nodeIndex = drawerNodes.indexOf(selectedNode);
+  }
+  nodeIndex = (nodeIndex + dir + drawerNodes.length) % drawerNodes.length;
+  selectNode(drawerNodes[nodeIndex]);
+
+  // Pan to node
+  const n = drawerNodes[nodeIndex];
+  const svg = d3.select('#svg-layer svg');
+  const transform = d3.zoomTransform(svg.node());
+  svg.transition().duration(300).call(
+    d3.zoom().scaleExtent([0.3, 5]).on('zoom', function(e) { svgG.attr('transform', e.transform); }).transform,
+    d3.zoomIdentity.translate(W / 2 - n.x, H / 2 - n.y).scale(transform.k)
+  );
+}
+
+// ── Timeline Slider ──
+function initTimeline() {
+  const slider = document.getElementById('timeline-slider');
+  const dateLabel = document.getElementById('timeline-date');
+  const countLabel = document.getElementById('timeline-count');
+  const playBtn = document.getElementById('timeline-play');
+  let playing = false;
+  let playInterval = null;
+
+  // Collect sorted timestamps from drawer nodes
+  function getSortedDates() {
+    const dates = [];
+    nodes.forEach(function(n) {
+      if (n.type === 'drawer' && n.data && n.data.d) {
+        const ts = new Date(n.data.d).getTime();
+        if (!isNaN(ts)) dates.push({ ts: ts, node: n });
+      }
+    });
+    dates.sort(function(a, b) { return a.ts - b.ts; });
+    return dates;
+  }
+
+  function applyTimeline(pct) {
+    const dated = getSortedDates();
+    if (!dated.length) return;
+
+    if (pct >= 100) {
+      // Show everything
+      svgNodes.classed('dim', false);
+      svgNodes.select('.node-core').style('opacity', null);
+      dateLabel.textContent = 'All time';
+      countLabel.textContent = '';
+      return;
+    }
+
+    const cutoffIndex = Math.max(0, Math.floor((pct / 100) * dated.length) - 1);
+    const cutoff = dated[cutoffIndex].ts;
+    const visibleCount = cutoffIndex + 1;
+
+    // Dim nodes not yet "born"
+    const visibleIds = new Set();
+    dated.forEach(function(entry, i) {
+      if (i <= cutoffIndex) visibleIds.add(entry.node.id);
+    });
+
+    svgNodes.each(function(d) {
+      const g = d3.select(this);
+      if (d.type === 'root') {
+        g.classed('dim', false);
+        return;
+      }
+      if (d.type === 'room') {
+        // Show room if any of its drawers are visible
+        const hasVisible = nodes.some(function(n) {
+          return n.room === d.room && n.type === 'drawer' && visibleIds.has(n.id);
+        });
+        g.classed('dim', !hasVisible);
+        return;
+      }
+      // Drawer
+      if (visibleIds.has(d.id)) {
+        g.classed('dim', false);
+        // Fade in effect: most recent visible nodes are brighter
+        const idx = dated.findIndex(function(e) { return e.node.id === d.id; });
+        const recency = (idx + 1) / (cutoffIndex + 1);
+        g.select('.node-core').style('opacity', 0.3 + recency * 0.7);
+      } else {
+        g.classed('dim', true);
+      }
+    });
+
+    // Also dim links to hidden nodes
+    svgLinks.style('display', function(d) {
+      const sid = typeof d.source === 'object' ? d.source.id : d.source;
+      const tid = typeof d.target === 'object' ? d.target.id : d.target;
+      const sNode = nodes.find(function(n) { return n.id === sid; });
+      const tNode = nodes.find(function(n) { return n.id === tid; });
+      if (sNode && sNode.type === 'root') return null; // root links always show
+      if (tNode && tNode.type === 'root') return null;
+      // Show link only if both endpoints visible
+      const sVis = !sNode || sNode.type === 'root' || sNode.type === 'room' || visibleIds.has(sid);
+      const tVis = !tNode || tNode.type === 'root' || tNode.type === 'room' || visibleIds.has(tid);
+      return (sVis && tVis) ? null : 'none';
+    });
+
+    // Update labels
+    const dt = new Date(cutoff);
+    dateLabel.textContent = dt.toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    });
+    countLabel.textContent = visibleCount + '/' + dated.length;
+  }
+
+  slider.addEventListener('input', function() {
+    applyTimeline(parseInt(this.value));
+  });
+
+  playBtn.addEventListener('click', function() {
+    if (playing) {
+      // Pause
+      clearInterval(playInterval);
+      playBtn.textContent = '▶';
+      playBtn.classList.remove('playing');
+      playing = false;
+      return;
+    }
+    // Play
+    slider.value = 0;
+    applyTimeline(0);
+    playBtn.textContent = '⏸';
+    playBtn.classList.add('playing');
+    playing = true;
+
+    playInterval = setInterval(function() {
+      var val = parseInt(slider.value) + 1;
+      if (val > 100) {
+        clearInterval(playInterval);
+        playBtn.textContent = '▶';
+        playBtn.classList.remove('playing');
+        playing = false;
+        slider.value = 100;
+        applyTimeline(100);
+        return;
+      }
+      slider.value = val;
+      applyTimeline(val);
+    }, 100); // ~10 seconds full playback
+  });
+}
+
+// ── Panel Tabs ──
+function initPanelTabs() {
+  const tabs = document.querySelectorAll('.panel-tab');
+  const views = {
+    selection: document.getElementById('tab-selection'),
+    list: document.getElementById('drawer-list'),
+    stats: document.getElementById('stats-panel'),
+    add: document.getElementById('add-drawer-panel'),
+  };
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      const target = this.dataset.tab;
+      tabs.forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      Object.keys(views).forEach(function(k) {
+        if (views[k]) views[k].classList.toggle('visible', k === target);
+        if (k === 'selection' && views[k]) views[k].style.display = k === target ? 'block' : 'none';
+      });
+      if (target === 'list') renderDrawerList();
+      if (target === 'stats') renderStats();
+    });
+  });
+}
+
+// ── Add Drawer Form ──
+function initAddDrawerForm() {
+  var contentEl = document.getElementById('add-content');
+  var roomEl = document.getElementById('add-room');
+  var sourceEl = document.getElementById('add-source');
+  var submitBtn = document.getElementById('add-submit-btn');
+  var statusEl = document.getElementById('add-form-status');
+  var charNum = document.getElementById('add-char-num');
+
+  // Character count + enable/disable submit
+  contentEl.addEventListener('input', function() {
+    charNum.textContent = this.value.length;
+    submitBtn.disabled = !(roomEl.value && this.value.trim().length >= 10);
+  });
+  roomEl.addEventListener('change', function() {
+    submitBtn.disabled = !(this.value && contentEl.value.trim().length >= 10);
+  });
+
+  submitBtn.addEventListener('click', async function() {
+    var room = roomEl.value;
+    var content = contentEl.value.trim();
+    var source = sourceEl.value.trim();
+
+    if (!room || content.length < 10) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Filing…';
+    statusEl.textContent = '';
+    statusEl.className = '';
+
+    try {
+      // Fresh session for add operation
+      sessionId = null;
+      await mpcCall('initialize', {
+        protocolVersion: '2025-06-18',
+        capabilities: {},
+        clientInfo: { name: 'palace-viz', version: '3' }
+      });
+
+      var args = {
+        wing: 'demo',
+        room: room,
+        content: content,
+        added_by: 'dashboard'
+      };
+      if (source) args.source_file = source;
+
+      var result = await mpcCall('tools/call', {
+        name: 'mempalace_add_drawer',
+        arguments: args
+      }, 2);
+
+      if (result.error) {
+        throw new Error(result.error.message || JSON.stringify(result.error));
+      }
+
+      // Parse the response text from the MCP tool result
+      var resultText = '';
+      if (result.result && result.result.content) {
+        resultText = result.result.content.map(function(c) { return c.text || ''; }).join('');
+      }
+
+      statusEl.textContent = '✓ Drawer filed! ' + (resultText.length > 80 ? resultText.slice(0, 80) + '…' : resultText);
+      statusEl.className = 'success';
+
+      // Reset form
+      contentEl.value = '';
+      sourceEl.value = '';
+      roomEl.value = '';
+      charNum.textContent = '0';
+
+      showToast('Drawer added to ' + room);
+
+      // Refresh graph data in background after a short delay
+      setTimeout(function() { fetchLive(true); }, 1500);
+
+    } catch (err) {
+      statusEl.textContent = '✗ ' + (err.message || 'Failed to add drawer');
+      statusEl.className = 'error';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Add to Palace';
+    }
+  });
+}
+
+// ── Drawer List View ──
+let listSortMode = 'date';
+let currentSearchTerm = '';
+
+function renderDrawerList() {
+  const container = document.getElementById('drawer-list');
+  const drawerNodes = nodes.filter(function(n) { return n.type === 'drawer'; });
+
+  // Sort
+  var sorted = drawerNodes.slice();
+  if (listSortMode === 'date') {
+    sorted.sort(function(a, b) {
+      var da = a.data && a.data.d ? new Date(a.data.d).getTime() : 0;
+      var db = b.data && b.data.d ? new Date(b.data.d).getTime() : 0;
+      return db - da;
+    });
+  } else if (listSortMode === 'size') {
+    sorted.sort(function(a, b) { return (b.data?.l || 0) - (a.data?.l || 0); });
+  } else if (listSortMode === 'room') {
+    sorted.sort(function(a, b) { return (a.room || '').localeCompare(b.room || ''); });
+  } else if (listSortMode === 'alpha') {
+    sorted.sort(function(a, b) { return (a.label || '').localeCompare(b.label || ''); });
+  }
+
+  // Filter by search + date range
+  sorted = sorted.filter(function(n) { return drawerPassesAllFilters(n); });
+
+  // Room filter
+  var listRoomFilter = document.getElementById('drawer-list')?.dataset?.roomFilter || '';
+  if (listRoomFilter) {
+    sorted = sorted.filter(function(n) { return n.room === listRoomFilter; });
+  }
+
+  var html = '';
+
+  // Room filter dropdown
+  var rooms = Object.keys(ROOM_COLORS).sort();
+  html += '<select class="list-room-filter" id="list-room-select">';
+  html += '<option value="">All rooms (' + drawerNodes.length + ')</option>';
+  rooms.forEach(function(r) {
+    var count = drawerNodes.filter(function(n) { return n.room === r; }).length;
+    if (count > 0) html += '<option value="' + r + '"' + (listRoomFilter === r ? ' selected' : '') + '>' + r + ' (' + count + ')</option>';
+  });
+  html += '</select>';
+
+  html += '<div class="list-controls">';
+  html += '<button class="list-sort' + (listSortMode === 'date' ? ' active' : '') + '" data-sort="date">Newest</button>';
+  html += '<button class="list-sort' + (listSortMode === 'size' ? ' active' : '') + '" data-sort="size">Largest</button>';
+  html += '<button class="list-sort' + (listSortMode === 'room' ? ' active' : '') + '" data-sort="room">Room</button>';
+  html += '<button class="list-sort' + (listSortMode === 'alpha' ? ' active' : '') + '" data-sort="alpha">A→Z</button>';
+  html += '<button class="list-sort" onclick="toggleBulkMode()" style="margin-left:auto">' + (bulkMode ? '✕ Cancel' : '☐ Select') + '</button>';
+  html += '</div>';
+
+  // Bulk action bar
+  html += '<div class="bulk-bar' + (bulkMode && bulkSelected.size > 0 ? ' visible' : '') + '" id="bulk-bar">';
+  html += '<span class="bulk-count">' + bulkSelected.size + ' selected</span>';
+  html += '<button onclick="bulkExport()">↓ Export</button>';
+  html += '<button onclick="bulkDelete()" style="color:#ff9b9b">🗑 Delete</button>';
+  html += '</div>';
+
+  html += '<div style="font-size:10px;color:var(--fg-dim);margin-bottom:4px">' + sorted.length + ' drawers</div>';
+
+  sorted.forEach(function(n) {
+    var color = ROOM_COLORS[n.room] || '#8ddbe0';
+    var dateStr = '';
+    if (n.data && n.data.d) {
+      var dt = new Date(n.data.d);
+      dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    var title = escHtml(n.label);
+    var tokens = currentSearchTerm ? currentSearchTerm.toLowerCase().split(/\s+/).filter(Boolean) : [];
+    if (tokens.length) {
+      var reStr = tokens.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|');
+      var re = new RegExp('(' + reStr + ')', 'gi');
+      title = title.replace(re, '<mark>$1</mark>');
+    }
+    var sel = selectedNode && selectedNode.id === n.id ? ' selected' : '';
+    var checked = bulkSelected.has(n.id) ? ' checked' : '';
+    html += '<div class="drawer-row' + sel + '" data-nid="' + n.id + '">';
+    html += '<div class="drawer-row-check' + checked + '" data-nid="' + n.id + '"></div>';
+    html += '<div class="drawer-row-dot" style="background:' + color + '"></div>';
+    html += '<div class="drawer-row-info">';
+    html += '<div class="drawer-row-title">' + title + '</div>';
+    html += '<div class="drawer-row-meta"><span class="highlight">' + escHtml(n.room) + '</span> · ' + (n.data?.l || 0).toLocaleString() + ' chars' + (dateStr ? ' · ' + dateStr : '') + '</div>';
+    html += '</div></div>';
+  });
+
+  container.innerHTML = html;
+
+  // Room filter event
+  var roomSelect = container.querySelector('#list-room-select');
+  if (roomSelect) {
+    roomSelect.addEventListener('change', function() {
+      container.dataset.roomFilter = this.value;
+      renderDrawerList();
+    });
+  }
+
+  // Sort button events
+  container.querySelectorAll('.list-sort[data-sort]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      listSortMode = this.dataset.sort;
+      renderDrawerList();
+    });
+  });
+
+  // Bulk checkbox events
+  container.querySelectorAll('.drawer-row-check').forEach(function(chk) {
+    chk.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var nid = this.dataset.nid;
+      if (bulkSelected.has(nid)) {
+        bulkSelected.delete(nid);
+        this.classList.remove('checked');
+      } else {
+        bulkSelected.add(nid);
+        this.classList.add('checked');
+      }
+      // Update bulk bar
+      var bar = document.getElementById('bulk-bar');
+      if (bar) {
+        bar.classList.toggle('visible', bulkSelected.size > 0);
+        bar.querySelector('.bulk-count').textContent = bulkSelected.size + ' selected';
+      }
+    });
+  });
+
+  // Row click events
+  container.querySelectorAll('.drawer-row').forEach(function(row) {
+    row.addEventListener('click', function() {
+      if (bulkMode) return; // In bulk mode, only checkboxes work
+      var nid = this.dataset.nid;
+      var node = nodes.find(function(n) { return n.id === nid; });
+      if (node) {
+        selectNode(node);
+        document.querySelector('.panel-tab[data-tab="selection"]').click();
+      }
+    });
+  });
+}
+
+// ── Stats / Insights Panel ──
+function renderStats() {
+  var container = document.getElementById('stats-panel');
+  var drawerNodes = nodes.filter(function(n) { return n.type === 'drawer'; });
+
+  // Room sizes
+  var roomCounts = {};
+  var roomChars = {};
+  drawerNodes.forEach(function(n) {
+    var r = n.room || 'unknown';
+    roomCounts[r] = (roomCounts[r] || 0) + 1;
+    roomChars[r] = (roomChars[r] || 0) + (n.data?.l || 0);
+  });
+
+  // Largest room
+  var largestRoom = Object.entries(roomCounts).sort(function(a, b) { return b[1] - a[1]; })[0];
+
+  // Deepest room (most content)
+  var deepestRoom = Object.entries(roomChars).sort(function(a, b) { return b[1] - a[1]; })[0];
+
+  // Newest drawer
+  var withDates = drawerNodes.filter(function(n) { return n.data && n.data.d; });
+  withDates.sort(function(a, b) { return new Date(b.data.d) - new Date(a.data.d); });
+  var newest = withDates[0];
+  var oldest = withDates[withDates.length - 1];
+
+  // Biggest single drawer
+  var biggest = drawerNodes.slice().sort(function(a, b) { return (b.data?.l || 0) - (a.data?.l || 0); })[0];
+
+  // Total content
+  var totalChars = drawerNodes.reduce(function(acc, n) { return acc + (n.data?.l || 0); }, 0);
+
+  // Sources
+  var sources = new Set();
+  drawerNodes.forEach(function(n) { if (n.data?.s) sources.add(n.data.s.split(':')[0].split('\\\\').pop().split('/').pop()); });
+
+  var html = '';
+  html += '<div class="insight-card">';
+  html += '<div class="insight-label">Total Knowledge</div>';
+  html += '<div class="insight-value">' + totalChars.toLocaleString() + ' characters</div>';
+  html += '<div class="insight-sub">' + drawerNodes.length + ' drawers across ' + Object.keys(roomCounts).length + ' rooms · ~' + Math.round(totalChars / 5000) + ' pages</div>';
+  html += '</div>';
+
+  html += '<div class="insight-card">';
+  html += '<div class="insight-label">Largest Room</div>';
+  html += '<div class="insight-value" style="color:' + (ROOM_COLORS[largestRoom[0]] || '#8ddbe0') + '">' + largestRoom[0] + '</div>';
+  html += '<div class="insight-sub">' + largestRoom[1] + ' drawers · ' + (roomChars[largestRoom[0]] || 0).toLocaleString() + ' chars</div>';
+  html += '</div>';
+
+  html += '<div class="insight-card">';
+  html += '<div class="insight-label">Deepest Room (Most Content)</div>';
+  html += '<div class="insight-value" style="color:' + (ROOM_COLORS[deepestRoom[0]] || '#8ddbe0') + '">' + deepestRoom[0] + '</div>';
+  html += '<div class="insight-sub">' + deepestRoom[1].toLocaleString() + ' characters · ' + roomCounts[deepestRoom[0]] + ' drawers</div>';
+  html += '</div>';
+
+  if (newest) {
+    var ndt = new Date(newest.data.d);
+    html += '<div class="insight-card">';
+    html += '<div class="insight-label">Newest Memory</div>';
+    html += '<div class="insight-value">' + escHtml(newest.label) + '</div>';
+    html += '<div class="insight-sub">' + ndt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' · ' + escHtml(newest.room) + '</div>';
+    html += '</div>';
+  }
+
+  if (biggest) {
+    html += '<div class="insight-card">';
+    html += '<div class="insight-label">Largest Memory</div>';
+    html += '<div class="insight-value">' + escHtml(biggest.label) + '</div>';
+    html += '<div class="insight-sub">' + (biggest.data?.l || 0).toLocaleString() + ' characters · ' + escHtml(biggest.room) + '</div>';
+    html += '</div>';
+  }
+
+  if (oldest && newest) {
+    var ageMs = new Date(newest.data.d) - new Date(oldest.data.d);
+    var ageDays = Math.ceil(ageMs / 86400000);
+    html += '<div class="insight-card">';
+    html += '<div class="insight-label">Palace Age</div>';
+    html += '<div class="insight-value">' + ageDays + ' day' + (ageDays !== 1 ? 's' : '') + '</div>';
+    html += '<div class="insight-sub">' + new Date(oldest.data.d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' → ' + new Date(newest.data.d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</div>';
+    html += '</div>';
+  }
+
+  // Room breakdown bar
+  html += '<div class="insight-card">';
+  html += '<div class="insight-label">Room Distribution</div>';
+  html += '<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin:8px 0">';
+  Object.entries(roomCounts).sort(function(a, b) { return b[1] - a[1]; }).forEach(function(entry) {
+    var pct = (entry[1] / drawerNodes.length * 100);
+    html += '<div style="width:' + pct + '%;background:' + (ROOM_COLORS[entry[0]] || '#8ddbe0') + '" title="' + entry[0] + ': ' + entry[1] + '"></div>';
+  });
+  html += '</div>';
+  Object.entries(roomCounts).sort(function(a, b) { return b[1] - a[1]; }).forEach(function(entry) {
+    html += '<div style="display:flex;justify-content:space-between;font-size:10px;margin:2px 0">';
+    html += '<span style="color:' + (ROOM_COLORS[entry[0]] || '#8ddbe0') + '">' + entry[0] + '</span>';
+    html += '<span style="color:var(--fg-dim)">' + entry[1] + ' (' + Math.round(entry[1] / drawerNodes.length * 100) + '%)</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // ── Structural Gap Detection ──
+  html += '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">';
+  html += '<div class="insight-label" style="font-size:12px;letter-spacing:1.5px;margin-bottom:8px">🔍 STRUCTURAL GAP ANALYSIS</div>';
+
+  var avgCount = drawerNodes.length / Math.max(Object.keys(roomCounts).length, 1);
+  var alerts = [];
+
+  // 1. Starving Rooms — rooms significantly below average
+  var starvingThreshold = avgCount * 0.3;
+  var starving = Object.entries(roomCounts)
+    .filter(function(e) { return e[1] < Math.max(starvingThreshold, 5); })
+    .sort(function(a, b) { return a[1] - b[1]; });
+  if (starving.length > 0) {
+    starving.forEach(function(s) {
+      var pct = Math.round(s[1] / avgCount * 100);
+      alerts.push({
+        severity: s[1] <= 2 ? 'critical' : 'warning',
+        icon: '🏚️',
+        title: s[0] + ' is underdeveloped',
+        detail: s[1] + ' drawer' + (s[1] !== 1 ? 's' : '') + ' (' + pct + '% of avg ' + Math.round(avgCount) + ')',
+        room: s[0]
+      });
+    });
+  }
+
+  // 2. Stale Zones — rooms where newest drawer is old
+  var now = Date.now();
+  var roomNewest = {};
+  drawerNodes.forEach(function(n) {
+    if (n.data && n.data.d) {
+      var r = n.room || 'unknown';
+      var t = new Date(n.data.d).getTime();
+      if (!roomNewest[r] || t > roomNewest[r]) roomNewest[r] = t;
+    }
+  });
+  var staleThresholdMs = 14 * 86400000; // 14 days
+  Object.entries(roomNewest).forEach(function(entry) {
+    var ageMs = now - entry[1];
+    var ageDays = Math.floor(ageMs / 86400000);
+    if (ageMs > staleThresholdMs) {
+      alerts.push({
+        severity: ageDays > 30 ? 'critical' : 'warning',
+        icon: '⏳',
+        title: entry[0] + ' is going stale',
+        detail: 'Last memory ' + ageDays + ' day' + (ageDays !== 1 ? 's' : '') + ' ago',
+        room: entry[0]
+      });
+    }
+  });
+
+  // 3. Source Concentration — rooms dominated by one source
+  var roomSources = {};
+  drawerNodes.forEach(function(n) {
+    var r = n.room || 'unknown';
+    var src = n.data?.s ? n.data.s.split(':')[0].split('\\').pop().split('/').pop() : 'unknown';
+    if (!roomSources[r]) roomSources[r] = {};
+    roomSources[r][src] = (roomSources[r][src] || 0) + 1;
+  });
+  Object.entries(roomSources).forEach(function(entry) {
+    var r = entry[0], srcMap = entry[1];
+    var total = roomCounts[r] || 1;
+    if (total < 5) return; // skip tiny rooms
+    var topSrc = Object.entries(srcMap).sort(function(a, b) { return b[1] - a[1]; })[0];
+    var dominance = topSrc[1] / total;
+    if (dominance > 0.85) {
+      alerts.push({
+        severity: 'info',
+        icon: '🔄',
+        title: r + ' has low source diversity',
+        detail: Math.round(dominance * 100) + '% from "' + topSrc[0] + '" — consider adding varied sources',
+        room: r
+      });
+    }
+  });
+
+  // 4. Shallow Drawers — drawers with very little content
+  var shallowThreshold = 50; // chars
+  var shallowCount = drawerNodes.filter(function(n) { return (n.data?.l || 0) < shallowThreshold; }).length;
+  if (shallowCount > 0) {
+    var shallowPct = Math.round(shallowCount / drawerNodes.length * 100);
+    alerts.push({
+      severity: shallowPct > 15 ? 'warning' : 'info',
+      icon: '📄',
+      title: shallowCount + ' shallow drawer' + (shallowCount !== 1 ? 's' : ''),
+      detail: shallowPct + '% of drawers have < ' + shallowThreshold + ' characters — may need enrichment'
+    });
+  }
+
+  // 5. Activity Gaps — find the longest stretch without new memories
+  if (withDates.length > 5) {
+    var timestamps = withDates.map(function(n) { return new Date(n.data.d).getTime(); }).sort(function(a, b) { return a - b; });
+    var maxGap = 0, gapStart = 0, gapEnd = 0;
+    for (var gi = 1; gi < timestamps.length; gi++) {
+      var gap = timestamps[gi] - timestamps[gi - 1];
+      if (gap > maxGap) { maxGap = gap; gapStart = timestamps[gi - 1]; gapEnd = timestamps[gi]; }
+    }
+    var gapDays = Math.floor(maxGap / 86400000);
+    if (gapDays > 3) {
+      alerts.push({
+        severity: gapDays > 14 ? 'warning' : 'info',
+        icon: '📅',
+        title: gapDays + '-day activity gap detected',
+        detail: new Date(gapStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' → ' + new Date(gapEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      });
+    }
+  }
+
+  // 6. Health Score — overall palace health 0-100
+  var healthScore = 100;
+  alerts.forEach(function(a) {
+    if (a.severity === 'critical') healthScore -= 15;
+    else if (a.severity === 'warning') healthScore -= 8;
+    else if (a.severity === 'info') healthScore -= 3;
+  });
+  healthScore = Math.max(0, Math.min(100, healthScore));
+
+  var healthColor = healthScore >= 80 ? '#7ee787' : healthScore >= 50 ? '#ffa657' : '#ff9b9b';
+  var healthLabel = healthScore >= 80 ? 'Healthy' : healthScore >= 50 ? 'Needs Attention' : 'At Risk';
+
+  html += '<div class="insight-card" style="border-left:3px solid ' + healthColor + '">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between">';
+  html += '<div>';
+  html += '<div class="insight-label">Palace Health</div>';
+  html += '<div class="insight-sub">' + healthLabel + ' · ' + alerts.length + ' finding' + (alerts.length !== 1 ? 's' : '') + '</div>';
+  html += '</div>';
+  html += '<div style="font:700 28px \'Space Grotesk\',sans-serif;color:' + healthColor + '">' + healthScore + '</div>';
+  html += '</div>';
+  // Health bar
+  html += '<div style="height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden">';
+  html += '<div style="width:' + healthScore + '%;height:100%;background:' + healthColor + ';border-radius:2px;transition:width 0.5s"></div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Render alerts sorted by severity
+  var sevOrder = { critical: 0, warning: 1, info: 2 };
+  var sevColors = { critical: '#ff9b9b', warning: '#ffa657', info: '#79c0ff' };
+  var sevLabels = { critical: 'CRITICAL', warning: 'WARNING', info: 'INFO' };
+  alerts.sort(function(a, b) { return sevOrder[a.severity] - sevOrder[b.severity]; });
+
+  if (alerts.length === 0) {
+    html += '<div class="insight-card" style="text-align:center;color:var(--fg-dim)">';
+    html += '<div style="font-size:20px;margin-bottom:4px">✨</div>';
+    html += '<div>No structural gaps detected — your palace is well-balanced!</div>';
+    html += '</div>';
+  } else {
+    alerts.forEach(function(a) {
+      var borderColor = sevColors[a.severity] || '#79c0ff';
+      html += '<div class="insight-card" style="border-left:3px solid ' + borderColor + ';cursor:pointer" ';
+      if (a.room) {
+        html += 'onclick="(function(){var n=nodes.find(function(x){return x.type===\'room\'&&x.room===\'' + a.room + '\'});if(n){selectedNode=n;renderDetail(n);panToNode(n);}})()"';
+      }
+      html += '>';
+      html += '<div style="display:flex;align-items:flex-start;gap:8px">';
+      html += '<span style="font-size:16px">' + a.icon + '</span>';
+      html += '<div style="flex:1;min-width:0">';
+      html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">';
+      html += '<span style="font:600 11px \'Space Grotesk\',sans-serif">' + escHtml(a.title) + '</span>';
+      html += '<span style="font:500 8px \'JetBrains Mono\',monospace;color:' + borderColor + ';background:' + borderColor + '1a;padding:1px 5px;border-radius:3px;letter-spacing:0.5px">' + sevLabels[a.severity] + '</span>';
+      html += '</div>';
+      html += '<div style="font:400 10px \'Inter\',sans-serif;color:var(--fg-dim)">' + escHtml(a.detail) + '</div>';
+      html += '</div></div></div>';
+    });
+  }
+
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+// ── Delete Drawer ──
+async function deleteDrawer(btn, title, room) {
+  // Two-click confirm
+  if (!btn.classList.contains('confirm')) {
+    btn.classList.add('confirm');
+    btn.textContent = '⚠ Confirm Delete?';
+    setTimeout(function() {
+      if (btn) { btn.classList.remove('confirm'); btn.textContent = '🗑 Delete'; }
+    }, 4000);
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+  try {
+    sessionId = null;
+    await mpcCall('initialize', {
+      protocolVersion: '2025-06-18',
+      capabilities: {},
+      clientInfo: { name: 'palace-viz', version: '3' }
+    });
+    var result = await mpcCall('tools/call', {
+      name: 'mempalace_kg_invalidate',
+      arguments: { query: title, room: room, wing: 'demo' }
+    }, 2);
+    var text = result?.result?.content?.[0]?.text || 'Done';
+    showToast('Deleted: ' + title.substring(0, 40));
+    // Refresh graph
+    setTimeout(function() { fetchLive(true); }, 1000);
+  } catch (e) {
+    showToast('Delete failed: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '🗑 Delete';
+  }
+}
+
+// ── Find Tunnels (Related Drawers) ──
+async function findTunnels(title) {
+  var el = document.getElementById('detail');
+  var existing = el.querySelector('.tunnel-results');
+  if (existing) { existing.remove(); return; } // toggle off
+
+  var loader = document.createElement('div');
+  loader.className = 'tunnel-results';
+  loader.innerHTML = '<div style="color:var(--fg-dim);font-size:11px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">🔗 Searching for connections…</div>';
+  el.appendChild(loader);
+
+  try {
+    sessionId = null;
+    await mpcCall('initialize', {
+      protocolVersion: '2025-06-18',
+      capabilities: {},
+      clientInfo: { name: 'palace-viz', version: '3' }
+    });
+    var result = await mpcCall('tools/call', {
+      name: 'mempalace_find_tunnels',
+      arguments: { query: title, limit: 8 }
+    }, 2);
+    var text = result?.result?.content?.[0]?.text || '';
+    var html = '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">';
+    html += '<div style="font:600 10px \'Space Grotesk\',sans-serif;letter-spacing:1px;color:var(--fg-dim);margin-bottom:6px">🔗 RELATED MEMORIES</div>';
+    if (!text || text.toLowerCase().includes('no tunnel') || text.toLowerCase().includes('not found')) {
+      html += '<div style="font-size:11px;color:var(--fg-dim)">No connections found for this drawer.</div>';
+    } else {
+      // Parse the tunnel results — each line is a related item
+      var lines = text.split('\n').filter(function(l) { return l.trim().length > 5; });
+      lines.slice(0, 8).forEach(function(line) {
+        var clean = line.replace(/^[-•*]\s*/, '').trim();
+        if (!clean) return;
+        html += '<div style="font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);cursor:pointer;color:var(--fg)" ';
+        html += 'onclick="(function(){var t=\'' + clean.substring(0, 50).replace(/'/g, "\\'") + '\';var n=nodes.find(function(x){return x.type===\'drawer\'&&x.label.includes(t);});if(n){selectNode(n);panToNode(n);}})()">';
+        html += '→ ' + escHtml(clean.substring(0, 80));
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+    loader.innerHTML = html;
+  } catch (e) {
+    loader.innerHTML = '<div style="color:#ff9b9b;font-size:11px;margin-top:10px">Failed to find tunnels: ' + escHtml(e.message) + '</div>';
+  }
+}
+
+// ── Background Polling / Notifications ──
+var lastKnownDrawerCount = 0;
+var pollInterval = null;
+
+function initNotifications() {
+  // Store initial count
+  lastKnownDrawerCount = nodes.filter(function(n) { return n.type === 'drawer'; }).length;
+
+  // Poll every 60 seconds
+  pollInterval = setInterval(async function() {
+    try {
+      sessionId = null;
+      await mpcCall('initialize', {
+        protocolVersion: '2025-06-18',
+        capabilities: {},
+        clientInfo: { name: 'palace-viz', version: '3' }
+      });
+      var resp = await mpcCall('tools/call', { name: 'mempalace_status', arguments: {} }, 2);
+      var text = resp?.result?.content?.[0]?.text || '';
+      var match = text.match(/(\d+)\s*drawer/i);
+      if (match) {
+        var newCount = parseInt(match[1], 10);
+        if (newCount > lastKnownDrawerCount) {
+          var diff = newCount - lastKnownDrawerCount;
+          showToast('🔔 ' + diff + ' new drawer' + (diff > 1 ? 's' : '') + ' added externally');
+          lastKnownDrawerCount = newCount;
+          // Auto-refresh
+          fetchLive(true);
+        }
+      }
+    } catch (e) { /* silent fail on poll */ }
+  }, 60000);
+}
+
+// ── Bulk Operations ──
+var bulkMode = false;
+var bulkSelected = new Set();
+
+function toggleBulkMode() {
+  bulkMode = !bulkMode;
+  bulkSelected.clear();
+  var list = document.getElementById('drawer-list');
+  if (list) {
+    list.classList.toggle('bulk-mode', bulkMode);
+    renderDrawerList();
+  }
+}
+
+async function bulkExport() {
+  if (bulkSelected.size === 0) { showToast('No drawers selected'); return; }
+  var selected = nodes.filter(function(n) { return bulkSelected.has(n.id); });
+  var data = selected.map(function(n) {
+    return { title: n.label, room: n.room, source: n.data?.s, chars: n.data?.l, date: n.data?.d, preview: n.data?.p };
+  });
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'mempalace-selection-' + bulkSelected.size + '-drawers.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Exported ' + bulkSelected.size + ' drawers');
+}
+
+async function bulkDelete() {
+  if (bulkSelected.size === 0) { showToast('No drawers selected'); return; }
+  if (!window.confirm('Delete ' + bulkSelected.size + ' drawers? This cannot be undone.')) return;
+  var selected = nodes.filter(function(n) { return bulkSelected.has(n.id); });
+  showToast('Deleting ' + selected.length + ' drawers…');
+  try {
+    sessionId = null;
+    await mpcCall('initialize', {
+      protocolVersion: '2025-06-18',
+      capabilities: {},
+      clientInfo: { name: 'palace-viz', version: '3' }
+    });
+    for (var i = 0; i < selected.length; i++) {
+      var n = selected[i];
+      await mpcCall('tools/call', {
+        name: 'mempalace_kg_invalidate',
+        arguments: { query: n.label, room: n.room, wing: 'demo' }
+      }, 10 + i);
+    }
+    showToast('Deleted ' + selected.length + ' drawers');
+    bulkSelected.clear();
+    setTimeout(function() { fetchLive(true); }, 1500);
+  } catch (e) {
+    showToast('Bulk delete failed: ' + e.message);
+  }
+}
+
+// ── Export ──
+function initExport() {
+  document.getElementById('btn-export').addEventListener('click', function() {
+    if (!palace) { showToast('No data to export'); return; }
+    var data = JSON.stringify(palace, null, 2);
+    var blob = new Blob([data], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'mempalace-export-' + new Date().toISOString().substring(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Palace exported as JSON');
+  });
+}
+
+// ── Fuzzy Multi-Token Search ──
+function fuzzyMatch(tokens, text) {
+  if (!tokens.length) return false;
+  var lower = text.toLowerCase();
+  return tokens.every(function(t) { return lower.includes(t); });
+}
+
+function drawerMatchesSearch(d, tokens) {
+  if (!tokens.length) return true;
+  var corpus = (d.label + ' ' + (d.data?.p || '') + ' ' + (d.data?.s || '') + ' ' + (d.room || '')).toLowerCase();
+  return tokens.every(function(t) { return corpus.includes(t); });
+}
+
+function drawerMatchesDateFilter(d) {
+  if (!dateFilterFrom && !dateFilterTo) return true;
+  if (!d.data?.d) return false;
+  var ts = new Date(d.data.d).getTime();
+  if (dateFilterFrom && ts < dateFilterFrom) return false;
+  if (dateFilterTo && ts > dateFilterTo + 86400000) return false;
+  return true;
+}
+
+function drawerPassesAllFilters(d) {
+  var tokens = currentSearchTerm ? currentSearchTerm.toLowerCase().split(/\s+/).filter(Boolean) : [];
+  return drawerMatchesSearch(d, tokens) && drawerMatchesDateFilter(d);
+}
+
+var dateFilterFrom = 0;
+var dateFilterTo = 0;
+
+function initEnhancedSearch() {
+  var qInput = document.getElementById('q');
+  var countEl = document.getElementById('search-count');
+
+  function runSearch() {
+    var term = qInput.value.toLowerCase().trim();
+    currentSearchTerm = term;
+    var tokens = term ? term.split(/\s+/).filter(Boolean) : [];
+
+    if (!tokens.length && !dateFilterFrom && !dateFilterTo) {
+      countEl.textContent = '';
+      svgNodes.classed('dim', false).classed('search-match', false);
+      svgLinks.style('display', null);
+      if (document.getElementById('drawer-list').classList.contains('visible')) renderDrawerList();
+      return;
+    }
+
+    var matchCount = 0;
+    svgNodes.classed('search-match', function(d) {
+      if (d.type === 'root') return false;
+      var match = drawerPassesAllFilters(d);
+      if (match) matchCount++;
+      return match;
+    });
+    svgNodes.classed('dim', function(d) {
+      if (d.type === 'root') return false;
+      if (drawerPassesAllFilters(d)) return false;
+      if (d.type === 'room') {
+        return !nodes.some(function(n) {
+          return n.room === d.room && n.type === 'drawer' && drawerPassesAllFilters(n);
+        });
+      }
+      return true;
+    });
+
+    countEl.textContent = matchCount + ' match' + (matchCount !== 1 ? 'es' : '');
+    if (document.getElementById('drawer-list').classList.contains('visible')) renderDrawerList();
+  }
+
+  qInput.addEventListener('input', runSearch);
+
+  // Date range filter toggle
+  document.getElementById('btn-filters').addEventListener('click', function() {
+    var row = document.getElementById('filter-row');
+    var vis = row.classList.toggle('visible');
+    this.classList.toggle('active', vis);
+  });
+
+  // Date filter inputs
+  document.getElementById('filter-from').addEventListener('change', function() {
+    dateFilterFrom = this.value ? new Date(this.value).getTime() : 0;
+    runSearch();
+  });
+  document.getElementById('filter-to').addEventListener('change', function() {
+    dateFilterTo = this.value ? new Date(this.value).getTime() : 0;
+    runSearch();
+  });
+  document.getElementById('filter-clear').addEventListener('click', function() {
+    dateFilterFrom = 0; dateFilterTo = 0;
+    document.getElementById('filter-from').value = '';
+    document.getElementById('filter-to').value = '';
+    runSearch();
+  });
+
+  // Expose for external calls
+  window.runSearch = runSearch;
+}
+
+// ── Semantic Clustering (client-side TF-IDF + k-means) ──
+var semanticClusters = null; // { assignments: Map<nodeId, clusterIdx>, labels: string[], colors: string[] }
+var CLUSTER_COLORS = ['#4dd9e8','#f778ba','#ffa657','#7ee787','#d2a8ff','#ff9b9b','#ffd166','#79c0ff','#8ddbe0','#c94de8','#56d364','#f0883e'];
+
+function buildSemanticClusters(k) {
+  if (!nodes || !nodes.length) return;
+  var drawers = nodes.filter(function(n) { return n.type === 'drawer'; });
+  if (drawers.length < 4) return;
+
+  // Step 1: Tokenize and build vocabulary
+  var STOP = new Set(['the','a','an','is','are','was','were','be','been','being','have','has','had','do','does','did','will','would','could','should','may','might','shall','can','need','dare','ought','used','to','of','in','for','on','with','at','by','from','as','into','through','during','before','after','above','below','between','out','off','over','under','again','further','then','once','here','there','when','where','why','how','all','each','every','both','few','more','most','other','some','such','no','nor','not','only','own','same','so','than','too','very','just','because','but','and','or','if','while','although','since','until','unless','about','also','it','its','this','that','these','those','i','me','my','we','our','you','your','he','she','they','them','their','what','which','who','whom','whose','up','down','any','many','much','new','old','one','two','get','got','make','like','know','take','come','go','see','look','find','give','tell','think','say','use','work','try','ask','seem','feel','leave','call','keep','let','put','show','turn','start','run','move','play','set','may','back','still','well','way','even','good','great','first','last','long','little','right','man','world','life','day','time','hand','part','place','case','week','help','line','thing','point','end','state','data','using','based','add','test','file','used','note','plan','key','type','code','api','app']);
+
+  function tokenize(text) {
+    return (text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(function(w) {
+      return w.length > 2 && !STOP.has(w) && !/^\d+$/.test(w);
+    });
+  }
+
+  // Build document term frequencies
+  var docs = drawers.map(function(d) {
+    var tokens = tokenize(d.label + ' ' + (d.data?.p || ''));
+    var tf = {};
+    tokens.forEach(function(t) { tf[t] = (tf[t] || 0) + 1; });
+    return { id: d.id, tf: tf, len: tokens.length || 1 };
+  });
+
+  // IDF
+  var df = {};
+  var N = docs.length;
+  docs.forEach(function(doc) {
+    Object.keys(doc.tf).forEach(function(t) { df[t] = (df[t] || 0) + 1; });
+  });
+
+  // Keep top terms by IDF (skip terms in >80% of docs or <2 docs)
+  var vocab = Object.keys(df).filter(function(t) { return df[t] >= 2 && df[t] < N * 0.8; });
+  vocab.sort(function(a, b) { return df[a] - df[b]; });
+  vocab = vocab.slice(0, 200); // top 200 discriminating terms
+  var vocabIdx = {};
+  vocab.forEach(function(t, i) { vocabIdx[t] = i; });
+
+  // TF-IDF vectors
+  var vectors = docs.map(function(doc) {
+    var vec = new Float32Array(vocab.length);
+    vocab.forEach(function(t, i) {
+      if (doc.tf[t]) {
+        vec[i] = (doc.tf[t] / doc.len) * Math.log(N / df[t]);
+      }
+    });
+    // L2 normalize
+    var norm = 0;
+    for (var i = 0; i < vec.length; i++) norm += vec[i] * vec[i];
+    norm = Math.sqrt(norm) || 1;
+    for (var i = 0; i < vec.length; i++) vec[i] /= norm;
+    return vec;
+  });
+
+  // Step 2: K-means clustering
+  if (!k) k = Math.min(Math.max(Math.round(Math.sqrt(drawers.length / 3)), 4), 12);
+  var dim = vocab.length;
+
+  // Init centroids (k-means++)
+  var centroids = [];
+  var usedIdx = new Set();
+  var firstIdx = Math.floor(Math.random() * vectors.length);
+  centroids.push(vectors[firstIdx].slice());
+  usedIdx.add(firstIdx);
+
+  for (var c = 1; c < k; c++) {
+    var dists = vectors.map(function(v, vi) {
+      if (usedIdx.has(vi)) return 0;
+      var minD = Infinity;
+      centroids.forEach(function(cen) {
+        var d = 0;
+        for (var j = 0; j < dim; j++) d += (v[j] - cen[j]) * (v[j] - cen[j]);
+        if (d < minD) minD = d;
+      });
+      return minD;
+    });
+    var totalD = dists.reduce(function(a, b) { return a + b; }, 0);
+    var r = Math.random() * totalD;
+    var cumul = 0;
+    for (var vi = 0; vi < dists.length; vi++) {
+      cumul += dists[vi];
+      if (cumul >= r && !usedIdx.has(vi)) { centroids.push(vectors[vi].slice()); usedIdx.add(vi); break; }
+    }
+  }
+
+  // Iterate
+  var assignments = new Int32Array(vectors.length);
+  for (var iter = 0; iter < 20; iter++) {
+    // Assign
+    var changed = false;
+    vectors.forEach(function(v, vi) {
+      var bestC = 0, bestD = Infinity;
+      centroids.forEach(function(cen, ci) {
+        var d = 0;
+        for (var j = 0; j < dim; j++) d += (v[j] - cen[j]) * (v[j] - cen[j]);
+        if (d < bestD) { bestD = d; bestC = ci; }
+      });
+      if (assignments[vi] !== bestC) changed = true;
+      assignments[vi] = bestC;
+    });
+    if (!changed) break;
+
+    // Update centroids
+    centroids = centroids.map(function() { return new Float32Array(dim); });
+    var counts = new Int32Array(k);
+    vectors.forEach(function(v, vi) {
+      var ci = assignments[vi];
+      counts[ci]++;
+      for (var j = 0; j < dim; j++) centroids[ci][j] += v[j];
+    });
+    centroids.forEach(function(cen, ci) {
+      if (counts[ci] > 0) for (var j = 0; j < dim; j++) cen[j] /= counts[ci];
+    });
+  }
+
+  // Step 3: Label clusters by top TF-IDF terms
+  var clusterTermScores = centroids.map(function() { return []; });
+  centroids.forEach(function(cen, ci) {
+    var scored = vocab.map(function(t, ti) { return { t: t, s: cen[ti] }; });
+    scored.sort(function(a, b) { return b.s - a.s; });
+    clusterTermScores[ci] = scored.slice(0, 3).map(function(x) { return x.t; });
+  });
+
+  // Build result
+  var assignMap = new Map();
+  docs.forEach(function(doc, vi) { assignMap.set(doc.id, assignments[vi]); });
+
+  var labels = clusterTermScores.map(function(terms) { return terms.join(' · '); });
+  var colors = CLUSTER_COLORS.slice(0, k);
+
+  semanticClusters = { assignments: assignMap, labels: labels, colors: colors, k: k };
+
+  // Render legend
+  var legendEl = document.getElementById('cluster-legend');
+  legendEl.innerHTML = labels.map(function(lbl, i) {
+    var count = 0;
+    assignMap.forEach(function(v) { if (v === i) count++; });
+    return '<span class="cluster-tag" data-cluster="' + i + '"><span class="cluster-dot" style="background:' + colors[i] + '"></span>' + lbl + ' <small>(' + count + ')</small></span>';
+  }).join('');
+
+  // Click to filter
+  legendEl.querySelectorAll('.cluster-tag').forEach(function(tag) {
+    tag.addEventListener('click', function() {
+      var ci = parseInt(this.dataset.cluster);
+      var already = this.classList.contains('active');
+      legendEl.querySelectorAll('.cluster-tag').forEach(function(t) { t.classList.remove('active'); });
+      if (!already) {
+        this.classList.add('active');
+        svgNodes.classed('dim', function(d) {
+          if (d.type === 'root') return false;
+          if (d.type === 'room') return false;
+          return semanticClusters.assignments.get(d.id) !== ci;
+        });
+      } else {
+        svgNodes.classed('dim', false);
+      }
+    });
+  });
+}
+
+// ── Color Modes ──
+let colorMode = 'room';
+function initColorModes() {
+  var buttons = document.querySelectorAll('#color-mode-bar button');
+  buttons.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      buttons.forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      colorMode = this.dataset.cmode;
+      applyColorMode();
+    });
+  });
+}
+
+function applyColorMode() {
+  if (!svgNodes) return;
+
+  // Toggle cluster legend visibility
+  var clEl = document.getElementById('cluster-legend');
+  if (clEl) clEl.classList.toggle('visible', colorMode === 'semantic');
+
+  if (colorMode === 'room') {
+    // Default room colors
+    svgNodes.select('.node-core')
+      .transition().duration(400)
+      .attr('fill', function(d) {
+        if (d.type === 'root') return 'url(#grad-root)';
+        return d.color;
+      })
+      .attr('opacity', function(d) { return d.type === 'drawer' ? 0.7 : 0.9; });
+    svgNodes.select('.node-glow')
+      .attr('fill', function(d) { return d.color; });
+    return;
+  }
+
+  if (colorMode === 'recency') {
+    // Newest = bright cyan, oldest = dim purple
+    var dates = [];
+    nodes.forEach(function(n) {
+      if (n.type === 'drawer' && n.data && n.data.d) {
+        dates.push(new Date(n.data.d).getTime());
+      }
+    });
+    if (!dates.length) return;
+    var minDate = Math.min.apply(null, dates);
+    var maxDate = Math.max.apply(null, dates);
+    var range = maxDate - minDate || 1;
+
+    svgNodes.select('.node-core')
+      .transition().duration(400)
+      .attr('fill', function(d) {
+        if (d.type === 'root') return '#4dd9e8';
+        if (d.type === 'room') return d.color;
+        if (!d.data || !d.data.d) return '#3d4555';
+        var t = (new Date(d.data.d).getTime() - minDate) / range;
+        // Interpolate purple → cyan
+        var r = Math.round(107 + (77 - 107) * t);
+        var g = Math.round(63 + (217 - 63) * t);
+        var b = Math.round(160 + (232 - 160) * t);
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+      })
+      .attr('opacity', function(d) {
+        if (d.type !== 'drawer') return 0.9;
+        if (!d.data || !d.data.d) return 0.2;
+        var t = (new Date(d.data.d).getTime() - minDate) / range;
+        return 0.3 + t * 0.7;
+      });
+    return;
+  }
+
+  if (colorMode === 'size') {
+    // Bigger content = brighter
+    var sizes = nodes.filter(function(n) { return n.type === 'drawer'; }).map(function(n) { return n.data?.l || 0; });
+    var maxSize = Math.max.apply(null, sizes) || 1;
+
+    svgNodes.select('.node-core')
+      .transition().duration(400)
+      .attr('fill', function(d) {
+        if (d.type === 'root') return '#4dd9e8';
+        if (d.type === 'room') return d.color;
+        var t = Math.min((d.data?.l || 0) / maxSize, 1);
+        var r = Math.round(61 + (77 - 61) * t);
+        var g = Math.round(69 + (217 - 69) * t);
+        var b = Math.round(85 + (232 - 85) * t);
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+      })
+      .attr('opacity', function(d) {
+        if (d.type !== 'drawer') return 0.9;
+        var t = Math.min((d.data?.l || 0) / maxSize, 1);
+        return 0.25 + t * 0.75;
+      });
+    return;
+  }
+
+  if (colorMode === 'decay') {
+    // Knowledge decay: bright green (fresh) → yellow (aging) → red (stale) → dim grey (decayed)
+    var now = Date.now();
+    var decayDays = 30; // fully decayed after 30 days
+
+    svgNodes.select('.node-core')
+      .transition().duration(400)
+      .attr('fill', function(d) {
+        if (d.type === 'root') return '#7ee787';
+        if (d.type === 'room') return d.color;
+        if (!d.data || !d.data.d) return '#3d4555';
+        var ageMs = now - new Date(d.data.d).getTime();
+        var t = Math.min(ageMs / (decayDays * 86400000), 1); // 0=fresh, 1=decayed
+        // Green → Yellow → Orange → Red → Grey
+        if (t < 0.25) {
+          var s = t / 0.25;
+          return 'rgb(' + Math.round(126 + (255 - 126) * s) + ',' + Math.round(231 + (214 - 231) * s) + ',' + Math.round(135 + (102 - 135) * s) + ')';
+        } else if (t < 0.5) {
+          var s = (t - 0.25) / 0.25;
+          return 'rgb(' + Math.round(255 + (255 - 255) * s) + ',' + Math.round(214 + (166 - 214) * s) + ',' + Math.round(102 + (87 - 102) * s) + ')';
+        } else if (t < 0.75) {
+          var s = (t - 0.5) / 0.25;
+          return 'rgb(' + Math.round(255 + (255 - 255) * s) + ',' + Math.round(166 + (107 - 166) * s) + ',' + Math.round(87 + (107 - 87) * s) + ')';
+        } else {
+          var s = (t - 0.75) / 0.25;
+          return 'rgb(' + Math.round(255 + (80 - 255) * s) + ',' + Math.round(107 + (80 - 107) * s) + ',' + Math.round(107 + (80 - 107) * s) + ')';
+        }
+      })
+      .attr('opacity', function(d) {
+        if (d.type !== 'drawer') return 0.9;
+        if (!d.data || !d.data.d) return 0.15;
+        var ageMs = now - new Date(d.data.d).getTime();
+        var t = Math.min(ageMs / (decayDays * 86400000), 1);
+        return 1.0 - t * 0.6; // 1.0 → 0.4
+      });
+  }
+
+  if (colorMode === 'semantic') {
+    // Build clusters on first use (or if node count changed)
+    if (!semanticClusters || semanticClusters._nodeCount !== nodes.length) {
+      buildSemanticClusters();
+      if (semanticClusters) semanticClusters._nodeCount = nodes.length;
+    }
+    if (semanticClusters) {
+      svgNodes.select('.node-core')
+        .transition().duration(400)
+        .attr('fill', function(d) {
+          if (d.type === 'root') return 'url(#grad-root)';
+          if (d.type === 'room') return d.color;
+          var ci = semanticClusters.assignments.get(d.id);
+          return ci !== undefined ? semanticClusters.colors[ci] : '#3d4555';
+        })
+        .attr('opacity', function(d) { return d.type === 'drawer' ? 0.8 : 0.9; });
+      svgNodes.select('.node-glow')
+        .attr('fill', function(d) {
+          if (d.type !== 'drawer') return d.color;
+          var ci = semanticClusters.assignments.get(d.id);
+          return ci !== undefined ? semanticClusters.colors[ci] : d.color;
+        });
+    }
+  }
+}
+
+// ── Fullscreen Mode ──
+function initFullscreen() {
+  var btn = document.getElementById('btn-fullscreen');
+  btn.addEventListener('click', toggleFullscreen);
+
+  function toggleFullscreen() {
+    var app = document.getElementById('app');
+    app.classList.toggle('fullscreen');
+    btn.textContent = app.classList.contains('fullscreen') ? '⊞' : '⛶';
+    // Resize after layout change
+    setTimeout(function() {
+      W = document.querySelector('#svg-layer svg').clientWidth;
+      H = document.querySelector('#svg-layer svg').clientHeight;
+      if (simulation) {
+        simulation.force('center', d3.forceCenter(W / 2, H / 2));
+        simulation.alpha(0.3).restart();
+      }
+    }, 100);
+  }
+}
+
+// ── Theme Toggle ──
+function initTheme() {
+  var btn = document.getElementById('btn-theme');
+  var root = document.documentElement;
+  var starsCanvas = document.getElementById('stars-canvas');
+  var crystalCanvas = document.getElementById('crystal-canvas');
+  var sparkleCanvas = document.getElementById('sparkle-canvas');
+
+  function setDark() {
+    root.removeAttribute('data-theme');
+    btn.textContent = '☀️';
+    if (starsCanvas) starsCanvas.style.opacity = '1';
+    if (crystalCanvas) crystalCanvas.style.opacity = '1';
+    if (sparkleCanvas) sparkleCanvas.style.opacity = '0';
+  }
+
+  function setLight() {
+    root.setAttribute('data-theme', 'light');
+    btn.textContent = '🌙';
+    if (starsCanvas) starsCanvas.style.opacity = '0';
+    if (crystalCanvas) crystalCanvas.style.opacity = '0.15';
+    if (sparkleCanvas) sparkleCanvas.style.opacity = '1';
+  }
+
+  // Restore saved theme
+  var saved = localStorage.getItem('palace-theme') || 'dark';
+  if (saved === 'light') {
+    setLight();
+  }
+
+  btn.addEventListener('click', function() {
+    var isLight = root.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      setDark();
+      localStorage.setItem('palace-theme', 'dark');
+    } else {
+      setLight();
+      localStorage.setItem('palace-theme', 'light');
+    }
+    showToast(isLight ? 'Crystal Fortress (dark)' : 'Crystal Palace (light)');
+  });
+}
+
+// ── Mobile Panel ──
+function initMobilePanel() {
+  var panel = document.getElementById('panel');
+  var pullTab = document.getElementById('mobile-pull-tab');
+  if (!pullTab) return;
+
+  pullTab.addEventListener('click', function() {
+    panel.classList.toggle('mobile-open');
+  });
+
+  // Swipe up to open, swipe down to close
+  var startY = 0;
+  panel.addEventListener('touchstart', function(e) {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  panel.addEventListener('touchend', function(e) {
+    var dy = e.changedTouches[0].clientY - startY;
+    if (dy < -40 && !panel.classList.contains('mobile-open')) {
+      panel.classList.add('mobile-open');
+    } else if (dy > 40 && panel.classList.contains('mobile-open')) {
+      panel.classList.remove('mobile-open');
+    }
+  }, { passive: true });
+
+  // Tap on graph area closes panel on mobile
+  document.getElementById('universe').addEventListener('click', function() {
+    if (window.innerWidth <= 900 && panel.classList.contains('mobile-open')) {
+      panel.classList.remove('mobile-open');
+    }
+  });
+}
+
+// ── Screenshot Export ──
+function captureScreenshot() {
+  showToast('Capturing screenshot…');
+  var svgEl = document.querySelector('#svg-layer svg');
+  var canvas = document.createElement('canvas');
+  var rect = svgEl.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  var ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+
+  // Draw background
+  ctx.fillStyle = '#0a0b10';
+  ctx.fillRect(0, 0, rect.width, rect.height);
+
+  // Draw stars canvas
+  var starsCanvas = document.getElementById('stars-canvas');
+  ctx.drawImage(starsCanvas, 0, 0, rect.width, rect.height);
+
+  // Draw crystal canvas
+  var crystalCanvas = document.getElementById('crystal-canvas');
+  ctx.drawImage(crystalCanvas, 0, 0, rect.width, rect.height);
+
+  // Serialize SVG and draw it
+  var svgData = new XMLSerializer().serializeToString(svgEl);
+  var svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+  var url = URL.createObjectURL(svgBlob);
+  var img = new Image();
+  img.onload = function() {
+    ctx.drawImage(img, 0, 0, rect.width, rect.height);
+    URL.revokeObjectURL(url);
+
+    // Watermark
+    ctx.font = '12px "Space Grotesk", sans-serif';
+    ctx.fillStyle = 'rgba(77,217,232,0.4)';
+    ctx.fillText('MemPalaceViz · ' + new Date().toLocaleDateString(), 16, rect.height - 16);
+
+    canvas.toBlob(function(blob) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mempalace-' + new Date().toISOString().substring(0, 10) + '.png';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast('Screenshot saved');
+    });
+  };
+  img.src = url;
+}
+
+// ── Room Deep Dive (double-click) ──
+let deepDiveRoom = null;
+function initDeepDive() {
+  // Double-click handler is set up inside buildForceGraph, but we add it here
+  // after svgNodes exist. We'll use a delegated approach.
+}
+
+function enterDeepDive(roomNode) {
+  deepDiveRoom = roomNode;
+  // Zoom to the room at 1.8x centered on it
+  var svg = d3.select('#svg-layer svg');
+  var k = 1.8;
+  var tx = W / 2 - roomNode.x * k;
+  var ty = H / 2 - roomNode.y * k;
+  var zoomBehavior = d3.zoom().scaleExtent([0.3, 5]).on('zoom', function(e) { svgG.attr('transform', e.transform); });
+  svg.call(zoomBehavior);
+  svg.transition().duration(600).call(
+    zoomBehavior.transform,
+    d3.zoomIdentity.translate(tx, ty).scale(k)
+  );
+  // Show drawer labels
+  svgG.classed('show-labels', true);
+  // Dim other rooms
+  svgNodes.classed('dim', function(d) {
+    return d.type !== 'root' && d.room !== roomNode.room && d.id !== roomNode.id;
+  });
+  showToast('Deep dive: ' + roomNode.label + ' (' + roomNode.count + ' drawers) — click Reset to exit');
+}
+
+function exitDeepDive() {
+  if (!deepDiveRoom) return;
+  deepDiveRoom = null;
+  svgG.classed('show-labels', false);
+  svgNodes.classed('dim', false);
+}
+
+// ── Keyboard Reference Overlay ──
+function toggleKbOverlay() {
+  var ov = document.getElementById('kb-overlay');
+  ov.classList.toggle('open');
+}
+(function initKbOverlay() {
+  document.addEventListener('DOMContentLoaded', function() {
+    var ov = document.getElementById('kb-overlay');
+    var closeBtn = document.getElementById('kb-close');
+    if (closeBtn) closeBtn.addEventListener('click', function() { ov.classList.remove('open'); });
+    if (ov) ov.addEventListener('click', function(e) { if (e.target === ov) ov.classList.remove('open'); });
+  });
+})();
+
+// ── Command Palette ──
+function initCommandPalette() {
+  var overlay = document.getElementById('cmd-overlay');
+  var input = document.getElementById('cmd-input');
+  var results = document.getElementById('cmd-results');
+  var selectedIdx = 0;
+
+  var commands = [
+    { icon: '⟳', label: 'Refresh data from server', hint: 'R', action: function() { document.getElementById('btn-refresh').click(); } },
+    { icon: '◉', label: 'Show server status', hint: '', action: function() { document.getElementById('btn-status').click(); } },
+    { icon: '◎', label: 'Toggle local graph', hint: 'L', action: function() { document.getElementById('btn-local').click(); } },
+    { icon: '↓', label: 'Export palace as JSON', hint: '', action: function() { document.getElementById('btn-export').click(); } },
+    { icon: '📸', label: 'Save screenshot as PNG', hint: '', action: captureScreenshot },
+    { icon: '⛶', label: 'Toggle fullscreen', hint: 'F', action: function() { document.getElementById('btn-fullscreen').click(); } },
+    { icon: '💥', label: 'Explode layout', hint: '1', action: function() { setMode('explode'); } },
+    { icon: '🪐', label: 'Orbit layout', hint: '2', action: function() { setMode('orbit'); } },
+    { icon: '🌀', label: 'Cluster layout', hint: '3', action: function() { setMode('cluster'); } },
+    { icon: '🎨', label: 'Color: Room colors', hint: '', action: function() { colorMode = 'room'; applyColorMode(); document.querySelectorAll('#color-mode-bar button').forEach(function(b) { b.classList.toggle('active', b.dataset.cmode === 'room'); }); } },
+    { icon: '🔥', label: 'Color: Recency heatmap', hint: '', action: function() { colorMode = 'recency'; applyColorMode(); document.querySelectorAll('#color-mode-bar button').forEach(function(b) { b.classList.toggle('active', b.dataset.cmode === 'recency'); }); } },
+    { icon: '📏', label: 'Color: Size heatmap', hint: '', action: function() { colorMode = 'size'; applyColorMode(); document.querySelectorAll('#color-mode-bar button').forEach(function(b) { b.classList.toggle('active', b.dataset.cmode === 'size'); }); } },
+    { icon: '⏳', label: 'Color: Knowledge decay', hint: '', action: function() { colorMode = 'decay'; applyColorMode(); document.querySelectorAll('#color-mode-bar button').forEach(function(b) { b.classList.toggle('active', b.dataset.cmode === 'decay'); }); } },
+    { icon: '🧠', label: 'Color: Semantic topics', hint: '', action: function() { colorMode = 'semantic'; applyColorMode(); document.querySelectorAll('#color-mode-bar button').forEach(function(b) { b.classList.toggle('active', b.dataset.cmode === 'semantic'); }); } },
+    { icon: '▶', label: 'Play timeline animation', hint: '', action: function() { document.getElementById('timeline-play').click(); } },
+    { icon: '📋', label: 'Show drawer list', hint: '', action: function() { document.querySelector('.panel-tab[data-tab="list"]').click(); } },
+    { icon: '📊', label: 'Show insights', hint: '', action: function() { document.querySelector('.panel-tab[data-tab="stats"]').click(); } },
+    { icon: '↺', label: 'Reset view', hint: '', action: function() { document.getElementById('btn-reset').click(); } },
+    { icon: '➕', label: 'Add new drawer', hint: '', action: function() { document.querySelector('.panel-tab[data-tab="add"]').click(); } },
+    { icon: '🌓', label: 'Toggle light/dark theme', hint: '', action: function() { document.getElementById('btn-theme').click(); } },
+    { icon: '⌨', label: 'Keyboard shortcuts reference', hint: '?', action: toggleKbOverlay },
+  ];
+
+  function renderCommands(filter) {
+    var filtered = commands;
+    if (filter) {
+      var f = filter.toLowerCase();
+      filtered = commands.filter(function(c) { return c.label.toLowerCase().includes(f); });
+    }
+    selectedIdx = 0;
+    results.innerHTML = filtered.map(function(c, i) {
+      return '<div class="cmd-item' + (i === 0 ? ' selected' : '') + '" data-idx="' + i + '">' +
+        '<span class="cmd-item-icon">' + c.icon + '</span>' +
+        '<span class="cmd-item-label">' + c.label + '</span>' +
+        (c.hint ? '<span class="cmd-item-hint">' + c.hint + '</span>' : '') +
+        '</div>';
+    }).join('');
+
+    results.querySelectorAll('.cmd-item').forEach(function(item, i) {
+      item.addEventListener('click', function() {
+        close();
+        filtered[i].action();
+      });
+    });
+    return filtered;
+  }
+
+  var currentFiltered = commands;
+
+  function open() {
+    overlay.classList.add('open');
+    input.value = '';
+    currentFiltered = renderCommands('');
+    input.focus();
+  }
+
+  function close() {
+    overlay.classList.remove('open');
+    input.value = '';
+  }
+
+  input.addEventListener('input', function() {
+    currentFiltered = renderCommands(this.value);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    var items = results.querySelectorAll('.cmd-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIdx = Math.min(selectedIdx + 1, items.length - 1);
+      items.forEach(function(it, i) { it.classList.toggle('selected', i === selectedIdx); });
+      items[selectedIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIdx = Math.max(selectedIdx - 1, 0);
+      items.forEach(function(it, i) { it.classList.toggle('selected', i === selectedIdx); });
+      items[selectedIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      close();
+      if (currentFiltered[selectedIdx]) currentFiltered[selectedIdx].action();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      close();
+    }
+  });
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) close();
+  });
+
+  // Global shortcut
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      if (overlay.classList.contains('open')) close(); else open();
+    }
+  });
+
+  window._cmdPaletteOpen = open;
+}
+
+// ── Init ──
+window.addEventListener('DOMContentLoaded', function() {
+  boot();
+  initDashControls();
+  initMinimap();
+  initKeyboard();
+  initTimeline();
+  initPanelTabs();
+  initExport();
+  initEnhancedSearch();
+  initColorModes();
+  initFullscreen();
+  initCommandPalette();
+  initAddDrawerForm();
+  initTheme();
+  initMobilePanel();
+  initNotifications();
+});
+window.addEventListener('resize', function() {
+  if (simulation) {
+    W = document.querySelector('#svg-layer svg').clientWidth;
+    H = document.querySelector('#svg-layer svg').clientHeight;
+    simulation.force('center', d3.forceCenter(W / 2, H / 2));
+    simulation.alpha(0.3).restart();
+  }
+});
+</script>
+</body>
+</html>

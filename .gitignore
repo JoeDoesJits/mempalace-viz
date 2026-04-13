@@ -1,0 +1,16 @@
+# Secrets
+vps-deploy/.env
+.claude/secrets/
+.claude/settings.local.json
+
+# Wrangler cache
+.wrangler/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Node
+node_modules/

@@ -1,0 +1,39 @@
+services:
+  mempalace:
+    build: .
+    image: mempalace-mcp:local
+    container_name: mempalace
+    restart: unless-stopped
+    environment:
+      MEMPALACE_TOKEN: ${MEMPALACE_TOKEN:?MEMPALACE_TOKEN must be set in .env}
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
+    volumes:
+      - mempalace-data:/data
+    networks:
+      - app-net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.3.0
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN:?TUNNEL_TOKEN must be set in .env}
+    networks:
+      - app-net
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
+
+volumes:
+  mempalace-data:
+
+networks:
+  app-net:
+    external: true

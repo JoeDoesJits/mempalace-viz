@@ -1,0 +1,74 @@
+worker_processes 1;
+error_log /dev/stderr warn;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    access_log /dev/stdout;
+    sendfile on;
+    keepalive_timeout 75s;
+    server_tokens off;
+
+    # Rate limiting: 10 requests/sec per IP, burst up to 20
+    limit_req_zone $binary_remote_addr zone=mcp:10m rate=10r/s;
+
+    # Bearer token check: only the exact "Bearer <token>" string is accepted.
+    map $http_authorization $mempal_authed {
+        default                                   "0";
+        "~^Bearer\s+${MEMPALACE_TOKEN}$"          "1";
+    }
+
+    upstream mcp_backend {
+        server 127.0.0.1:8000;
+        keepalive 16;
+    }
+
+    server {
+        listen 80 default_server;
+        server_name _;
+
+        # Security headers
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+        # Health endpoint for Docker + Traefik; no auth required.
+        location = /health {
+            access_log off;
+            add_header Content-Type text/plain;
+            return 200 "ok\n";
+        }
+
+        # All MCP traffic goes through here.
+        location / {
+            limit_req zone=mcp burst=20 nodelay;
+
+            if ($mempal_authed != "1") {
+                add_header WWW-Authenticate "Bearer realm=\"mempalace\"" always;
+                add_header Content-Type application/json always;
+                return 401 "{\"error\":\"unauthorized\"}\n";
+            }
+
+            proxy_pass http://mcp_backend;
+            proxy_http_version 1.1;
+
+            # Forward original host + client info
+            proxy_set_header Host               $host;
+            proxy_set_header X-Real-IP          $remote_addr;
+            proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto  $scheme;
+            proxy_set_header Connection         "";
+
+            # SSE requires these — no buffering, long timeouts, chunked off
+            proxy_buffering            off;
+            proxy_cache                off;
+            proxy_read_timeout         3600s;
+            proxy_send_timeout         3600s;
+            chunked_transfer_encoding  off;
+        }
+    }
+}

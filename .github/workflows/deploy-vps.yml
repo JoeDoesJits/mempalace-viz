@@ -1,0 +1,53 @@
+name: Deploy VPS
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'vps-deploy/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Sync vps-deploy files
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=accept-new" \
+            --exclude='.env' \
+            --exclude='.env.example' \
+            --exclude='.gitignore' \
+            --exclude='config.linux.json' \
+            vps-deploy/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/mempalace/
+
+      - name: Rebuild and restart containers
+        run: |
+          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=accept-new \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            'cd /opt/mempalace && docker compose build --no-cache && docker compose up -d'
+
+      - name: Health check
+        run: |
+          echo "Waiting 30s for containers to start..."
+          sleep 30
+          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=accept-new \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            'docker ps --filter name=mempalace --format "{{.Names}} {{.Status}}" | grep -q "(healthy)" && echo "✅ mempalace is healthy" || (echo "❌ mempalace not healthy" && docker logs mempalace --tail 20 && exit 1)'
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/id_deploy
