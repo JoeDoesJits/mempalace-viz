@@ -4,6 +4,24 @@ A futuristic knowledge graph visualization dashboard for the [MemPalace](https:/
 
 Built as a single-file SPA with D3.js force-directed graphs, canvas particle effects, and real-time MCP integration.
 
+## Screenshots
+
+| Dark Theme | Light Theme |
+|:---:|:---:|
+| ![Dashboard Dark](docs/screenshots/dashboard-dark.png) | ![Dashboard Light](docs/screenshots/dashboard-light.png) |
+
+| Semantic Topics | Recency Heatmap |
+|:---:|:---:|
+| ![Semantic Topics](docs/screenshots/semantic-topics.png) | ![Recency](docs/screenshots/color-recency.png) |
+
+| Drawer Detail | Drawer List |
+|:---:|:---:|
+| ![Drawer Detail](docs/screenshots/drawer-detail.png) | ![Drawer List](docs/screenshots/drawer-list.png) |
+
+| Connection Settings | Command Palette | Mobile |
+|:---:|:---:|:---:|
+| ![Connection Settings](docs/screenshots/connection-settings.png) | ![Command Palette](docs/screenshots/command-palette.png) | ![Mobile](docs/screenshots/mobile-view.png) |
+
 ## Features
 
 - **Force-directed graph** rendering hundreds of knowledge nodes across rooms
