@@ -586,6 +586,52 @@
   }
   #kb-close:hover { color: var(--fg); }
 
+  /* ── Connection Settings Modal ── */
+  #conn-overlay {
+    position: fixed; inset: 0; background: var(--overlay-bg); z-index: 50;
+    display: none; align-items: center; justify-content: center;
+  }
+  #conn-overlay.open { display: flex; }
+  #conn-panel {
+    background: var(--bg-elev); backdrop-filter: blur(20px); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px; width: 420px; max-width: 90vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+  #conn-panel h3 { margin: 0 0 4px 0; font: 600 16px 'Space Grotesk', sans-serif; color: var(--fg); }
+  #conn-panel .conn-subtitle { font: 400 12px 'Inter', sans-serif; color: var(--fg-dim); margin-bottom: 16px; }
+  .conn-mode-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+  .conn-mode-tab { flex: 1; padding: 8px; font: 500 11px 'Space Grotesk', sans-serif; color: var(--fg-dim); background: none; border: none; border-right: 1px solid var(--border); cursor: pointer; transition: all 0.2s; text-align: center; }
+  .conn-mode-tab:last-child { border-right: none; }
+  .conn-mode-tab:hover { color: var(--fg); background: rgba(255,255,255,0.03); }
+  .conn-mode-tab.active { color: var(--cyan); background: rgba(77,217,232,0.08); }
+  .conn-section { display: none; }
+  .conn-section.visible { display: block; }
+  .conn-section label { display: block; font: 500 11px 'Space Grotesk', sans-serif; color: var(--fg-dim); margin-bottom: 6px; }
+  .conn-section input[type="text"] {
+    width: 100%; background: var(--bg-glass); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font: 400 13px 'JetBrains Mono', monospace; color: var(--fg); outline: none;
+    transition: border-color 0.2s; box-sizing: border-box;
+  }
+  .conn-section input[type="text"]:focus { border-color: var(--cyan); box-shadow: 0 0 12px var(--glow-cyan); }
+  .conn-section .conn-hint { font: 400 10px 'Inter', sans-serif; color: var(--fg-muted); margin-top: 6px; line-height: 1.5; }
+  .conn-section .conn-hint code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+  .conn-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+  .conn-actions button {
+    padding: 8px 16px; border-radius: 8px; font: 500 12px 'Space Grotesk', sans-serif;
+    cursor: pointer; transition: all 0.2s; border: 1px solid var(--border);
+  }
+  .conn-btn-primary { background: linear-gradient(135deg, rgba(77,217,232,0.15), rgba(107,63,160,0.15)); color: var(--cyan); border-color: var(--cyan) !important; }
+  .conn-btn-primary:hover { box-shadow: 0 0 20px var(--glow-cyan); }
+  .conn-btn-secondary { background: var(--bg-glass); color: var(--fg-dim); }
+  .conn-btn-secondary:hover { color: var(--fg); border-color: var(--fg-dim); }
+  .conn-status { font: 400 11px 'JetBrains Mono', monospace; margin-top: 12px; padding: 8px; border-radius: 6px; display: none; }
+  .conn-status.success { display: block; background: rgba(126,231,135,0.1); color: #7ee787; border: 1px solid rgba(126,231,135,0.2); }
+  .conn-status.error { display: block; background: rgba(255,107,107,0.1); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.2); }
+  .conn-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font: 500 9px 'Space Grotesk', sans-serif; margin-left: 6px; vertical-align: middle; }
+  .conn-badge.local { background: rgba(126,231,135,0.15); color: #7ee787; }
+  .conn-badge.hosted { background: rgba(77,217,232,0.15); color: var(--cyan); }
+  .conn-badge.demo { background: rgba(255,166,87,0.15); color: #ffa657; }
+
   /* ── Status toast ── */
   #status-toast {
     position: absolute;
@@ -1401,7 +1447,7 @@
     <button id="btn-mobile-reload" title="Reload page" onclick="window.location.reload()">↻</button>
     <div id="tooltip"></div>
     <div class="refresh-bar"><div class="progress" id="refresh-progress"></div></div>
-    <div class="refresh-indicator"><span class="pulse-dot"></span><span id="refresh-label">Live · 274 drawers</span></div>
+    <div class="refresh-indicator"><span class="pulse-dot"></span><span id="refresh-label">Live · 274 drawers</span> <span id="conn-indicator" class="conn-badge demo" style="cursor:pointer" title="Connection settings">DEMO</span></div>
     <div id="minimap"><canvas id="minimap-canvas"></canvas><div class="viewport-rect" id="minimap-vp"></div></div>
     <div id="status-toast"></div>
     <div id="kbd-hint">
@@ -1479,6 +1525,48 @@
       </div>
     </div>
   </aside>
+</div>
+
+<div id="conn-overlay">
+  <div id="conn-panel">
+    <h3>Connect to MemPalace <span id="conn-mode-badge" class="conn-badge demo">DEMO</span></h3>
+    <div class="conn-subtitle">Choose how to connect to your MCP server</div>
+    <div class="conn-mode-tabs">
+      <button class="conn-mode-tab active" data-conn="local">Local Server</button>
+      <button class="conn-mode-tab" data-conn="hosted">Hosted (CF Proxy)</button>
+      <button class="conn-mode-tab" data-conn="demo">Demo Data</button>
+    </div>
+    <div class="conn-section visible" id="conn-local">
+      <label>MCP Server URL</label>
+      <input type="text" id="conn-local-url" placeholder="http://localhost:8765/mcp">
+      <div class="conn-hint">
+        Run your MemPalace MCP server locally, then bridge to HTTP:<br>
+        <code>pip install mcp-proxy</code><br>
+        <code>mcp-proxy --port 8765 -- python -m mempalace.mcp_server</code><br>
+        Or if your server already speaks HTTP, enter its URL directly.
+      </div>
+    </div>
+    <div class="conn-section" id="conn-hosted">
+      <label>Proxy Endpoint</label>
+      <input type="text" id="conn-hosted-url" placeholder="/api/mcp">
+      <div class="conn-hint">
+        For production hosting, use a CF Pages Function as a proxy.<br>
+        See <code>docs/DEPLOYMENT.md</code> for the full Cloudflare setup guide.<br>
+        Default: <code>/api/mcp</code> (relative to dashboard URL).
+      </div>
+    </div>
+    <div class="conn-section" id="conn-demo">
+      <div class="conn-hint" style="margin-top:0">
+        Loads <code>demo-palace.json</code> with 42 sample drawers.<br>
+        No MCP server needed — great for exploring the dashboard UI.
+      </div>
+    </div>
+    <div id="conn-status" class="conn-status"></div>
+    <div class="conn-actions">
+      <button class="conn-btn-secondary" id="conn-cancel">Cancel</button>
+      <button class="conn-btn-primary" id="conn-test">Test &amp; Connect</button>
+    </div>
+  </div>
 </div>
 
 <div id="cmd-overlay">
@@ -1897,11 +1985,149 @@ let filterRoom = null;
 let palace = null;
 let W, H;
 
+// ── Connection Manager ──
+var connMode = localStorage.getItem('mempalace-conn-mode') || 'auto'; // 'local', 'hosted', 'demo', 'auto'
+var connUrl = localStorage.getItem('mempalace-conn-url') || '';
+var MCP_ENDPOINT = '/api/mcp';
+let sessionId = null;
+
+function getConnectionMode() {
+  if (connMode !== 'auto') return connMode;
+  // Auto-detect: if on a real domain with /api/mcp, use hosted; otherwise demo
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return 'hosted';
+  return 'demo';
+}
+
+function getMcpEndpoint() {
+  var mode = getConnectionMode();
+  if (mode === 'local') return connUrl || 'http://localhost:8765/mcp';
+  if (mode === 'hosted') return connUrl || '/api/mcp';
+  return null; // demo mode
+}
+
+function setConnection(mode, url) {
+  connMode = mode;
+  connUrl = url || '';
+  localStorage.setItem('mempalace-conn-mode', mode);
+  localStorage.setItem('mempalace-conn-url', url || '');
+  MCP_ENDPOINT = getMcpEndpoint();
+  sessionId = null; // reset session for new endpoint
+  updateConnBadge();
+}
+
+function updateConnBadge() {
+  var mode = getConnectionMode();
+  var badge = document.getElementById('conn-mode-badge');
+  var refreshLabel = document.getElementById('refresh-label');
+  if (badge) {
+    badge.className = 'conn-badge ' + mode;
+    badge.textContent = mode === 'local' ? 'LOCAL' : mode === 'hosted' ? 'HOSTED' : 'DEMO';
+  }
+  // Also update the small indicator in the refresh bar
+  var indicator = document.getElementById('conn-indicator');
+  if (indicator) {
+    indicator.className = 'conn-badge ' + mode;
+    indicator.textContent = mode === 'local' ? 'LOCAL' : mode === 'hosted' ? 'HOSTED' : 'DEMO';
+  }
+}
+
+function openConnSettings() {
+  document.getElementById('conn-overlay').classList.add('open');
+  var mode = getConnectionMode();
+  // Set active tab
+  document.querySelectorAll('.conn-mode-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.conn === mode); });
+  document.querySelectorAll('.conn-section').forEach(function(s) { s.classList.toggle('visible', s.id === 'conn-' + mode); });
+  // Fill in current values
+  document.getElementById('conn-local-url').value = (connMode === 'local' ? connUrl : '') || 'http://localhost:8765/mcp';
+  document.getElementById('conn-hosted-url').value = (connMode === 'hosted' ? connUrl : '') || '/api/mcp';
+  document.getElementById('conn-status').className = 'conn-status';
+  document.getElementById('conn-status').textContent = '';
+}
+
+function closeConnSettings() {
+  document.getElementById('conn-overlay').classList.remove('open');
+}
+
+function initConnSettings() {
+  // Tab switching
+  document.querySelectorAll('.conn-mode-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.conn-mode-tab').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      var mode = this.dataset.conn;
+      document.querySelectorAll('.conn-section').forEach(function(s) { s.classList.toggle('visible', s.id === 'conn-' + mode); });
+    });
+  });
+
+  // Test & Connect
+  document.getElementById('conn-test').addEventListener('click', async function() {
+    var activeTab = document.querySelector('.conn-mode-tab.active').dataset.conn;
+    var statusEl = document.getElementById('conn-status');
+
+    if (activeTab === 'demo') {
+      setConnection('demo', '');
+      statusEl.className = 'conn-status success';
+      statusEl.textContent = '✓ Demo mode — loading sample data';
+      setTimeout(function() { closeConnSettings(); loadDemoData(); }, 800);
+      return;
+    }
+
+    var url = activeTab === 'local'
+      ? document.getElementById('conn-local-url').value.trim()
+      : document.getElementById('conn-hosted-url').value.trim();
+
+    if (!url) { statusEl.className = 'conn-status error'; statusEl.textContent = '✗ Enter a URL'; return; }
+
+    statusEl.className = 'conn-status';
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'rgba(77,217,232,0.05)';
+    statusEl.style.color = 'var(--fg-dim)';
+    statusEl.style.border = '1px solid var(--border)';
+    statusEl.textContent = '⟳ Testing connection…';
+
+    try {
+      var resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: '3' } } }),
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      var data = JSON.parse((await resp.text()).split('\n')[0]);
+      if (data.result && data.result.serverInfo) {
+        setConnection(activeTab, url);
+        statusEl.className = 'conn-status success';
+        statusEl.textContent = '✓ Connected to ' + (data.result.serverInfo.name || 'MCP server');
+        setTimeout(function() { closeConnSettings(); sessionId = null; fetchLive(); }, 1000);
+      } else {
+        throw new Error('Invalid MCP response');
+      }
+    } catch (e) {
+      statusEl.className = 'conn-status error';
+      statusEl.textContent = '✗ ' + (e.message || 'Connection failed');
+    }
+  });
+
+  // Cancel
+  document.getElementById('conn-cancel').addEventListener('click', closeConnSettings);
+  document.getElementById('conn-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeConnSettings();
+  });
+
+  // Connection indicator badge click
+  var connIndicator = document.getElementById('conn-indicator');
+  if (connIndicator) connIndicator.addEventListener('click', openConnSettings);
+}
+
 // ── Boot ──
 function boot() {
+  MCP_ENDPOINT = getMcpEndpoint();
+  updateConnBadge();
+
   if (PALACE) {
     palace = PALACE;
     render(palace);
+  } else if (getConnectionMode() === 'demo') {
+    loadDemoData();
   } else {
     fetchLive();
   }
@@ -1915,26 +2141,23 @@ async function loadDemoData() {
     palace = await resp.json();
     render(palace);
     document.getElementById('refresh-label').textContent = 'Demo · ' + palace.total_drawers + ' drawers';
-    showToast('Running in demo mode — connect an MCP server for live data');
+    updateConnBadge();
+    showToast('Demo mode — click ⚡ to connect to your MCP server');
   } catch (e) {
     console.warn('Demo data not available:', e);
-    document.getElementById('refresh-label').textContent = 'No data — connect MCP server';
+    document.getElementById('refresh-label').textContent = 'No data';
   }
 }
 
-// ── Live fetch via MCP (proxied through CF Pages Function) ──
-const MCP_PROXY = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-  ? '/api/mcp'                            // local dev — update to your production URL if needed
-  : '/api/mcp';                           // production uses relative path
-let sessionId = null;
-
 async function mpcCall(method, params, id = 1) {
+  var endpoint = MCP_ENDPOINT || getMcpEndpoint();
+  if (!endpoint) throw new Error('No MCP endpoint configured');
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json, text/event-stream',
   };
   if (sessionId) headers['Mcp-Session-Id'] = sessionId;
-  const resp = await fetch(MCP_PROXY, {
+  const resp = await fetch(endpoint, {
     method: 'POST', headers,
     body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
   });
@@ -1982,10 +2205,14 @@ async function fetchLive(silent) {
     if (silent && delta > 0) showToast(`${delta} new drawer${delta > 1 ? 's' : ''} detected`);
     scheduleRefresh();
   } catch (e) {
-    console.warn('Live fetch failed, using embedded data if available:', e);
+    console.warn('Live fetch failed:', e);
     document.getElementById('refresh-label').textContent = 'Offline · cached data';
     if (!palace && PALACE) { palace = PALACE; render(palace); }
-    else if (!palace) { loadDemoData(); }
+    else if (!palace) {
+      loadDemoData();
+      // If auto-detected mode failed, show connection settings after a brief delay
+      if (connMode === 'auto') setTimeout(openConnSettings, 2000);
+    }
   }
 }
 
@@ -4145,6 +4372,7 @@ function initCommandPalette() {
     { icon: '➕', label: 'Add new drawer', hint: '', action: function() { document.querySelector('.panel-tab[data-tab="add"]').click(); } },
     { icon: '🌓', label: 'Toggle light/dark theme', hint: '', action: function() { document.getElementById('btn-theme').click(); } },
     { icon: '⌨', label: 'Keyboard shortcuts reference', hint: '?', action: toggleKbOverlay },
+    { icon: '⚡', label: 'Connection settings', hint: '', action: openConnSettings },
   ];
 
   function renderCommands(filter) {
@@ -4243,6 +4471,7 @@ window.addEventListener('DOMContentLoaded', function() {
   initTheme();
   initMobilePanel();
   initNotifications();
+  initConnSettings();
 });
 window.addEventListener('resize', function() {
   if (simulation) {
