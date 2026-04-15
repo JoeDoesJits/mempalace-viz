@@ -2,6 +2,53 @@
 
 All notable changes to MemPalaceViz are documented here.
 
+## [1.4.0] - 2026-04-15
+
+### MemPalace v3.3.0 Integration, Connection Manager & UX Polish
+
+#### MemPalace v3.3.0 API Integration
+- **`list_drawers`** — replaced wildcard `search *` with paginated drawer listing (returns IDs, supports offset/limit)
+- **`get_drawer`** — "Full Content" button loads complete drawer text on demand from the detail panel
+- **`update_drawer`** — inline edit drawer content and room directly from the detail panel
+- **`delete_drawer`** — delete by drawer ID (falls back to `kg_invalidate` for older servers)
+- Dynamic wing name from server status — removed all hardcoded `wing: 'demo'` references
+- Drawer IDs stored on graph nodes for precise CRUD operations
+
+#### Connection Settings UI
+- 3-tab modal: **Local Server** (mcp-proxy), **Hosted** (CF Proxy), **Demo Data**
+- Auto-detection: real domain → hosted mode, localhost → demo mode, user-configurable
+- **Test & Connect** — sends MCP `initialize` handshake, shows success/error status
+- localStorage persistence for connection mode and URL across sessions
+- Clickable status badge in bottom bar (LOCAL / HOSTED / DEMO)
+- Command palette entry: "Connection settings"
+
+#### Version Tracker & Update Checker
+- **Version badge** (bottom-right) showing `Viz v1.4.0 · Palace v3.3.0`
+- Server version captured from MCP `initialize` response
+- **Check for updates** — queries GitHub Releases (Viz) and PyPI (Palace)
+- Badge turns green with notification when updates are available
+- Command palette entry: "Check for updates"
+
+#### Themed Tooltips
+- Custom glassmorphic tooltips replacing native browser `title` attributes
+- 54 tooltip descriptions across all interactive elements
+- Backdrop blur, cyan glow border, smooth fade animation
+- Dynamic arrow pointer aligned to target element center
+- MutationObserver auto-harvests `title` attrs from dynamically added elements
+- Works in both dark and light themes
+
+#### UX Polish
+- Centered search placeholder text
+- All `clientInfo` references use `VIZ_VERSION` constant
+- Screenshots gallery in README (10 images: dark/light themes, topics, recency, detail, list, insights, connection settings, command palette, mobile)
+
+#### Open Source
+- Public repo: `github.com/JoeDoesJits/mempalace-viz` (MIT license)
+- Full PII audit — zero personal data in public repo
+- `demo-palace.json` with 42 sanitized sample drawers across 8 rooms
+- Deployment docs (`DEPLOYMENT.md`), security docs (`SECURITY.md`)
+- CF Pages Function proxy template with placeholder domains
+
 ## [1.3.0] - 2026-04-13
 
 ### Search, Clustering, Dashboard Features & Branding
