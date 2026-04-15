@@ -633,6 +633,52 @@
   .conn-badge.hosted { background: rgba(77,217,232,0.15); color: var(--cyan); }
   .conn-badge.demo { background: rgba(255,166,87,0.15); color: #ffa657; }
 
+  /* ── Custom Tooltips ── */
+  .viz-tip {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    max-width: 280px;
+    padding: 6px 12px;
+    font: 400 11px 'Inter', sans-serif;
+    color: var(--fg);
+    background: var(--bg-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-hover);
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), 0 0 12px var(--glow-cyan);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+  }
+  .viz-tip.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .viz-tip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 16px;
+    width: 8px;
+    height: 8px;
+    background: var(--bg-glass);
+    border-left: 1px solid var(--border-hover);
+    border-top: 1px solid var(--border-hover);
+    transform: rotate(45deg);
+  }
+  .viz-tip.above::before {
+    top: auto;
+    bottom: -4px;
+    transform: rotate(225deg);
+  }
+  [data-theme="light"] .viz-tip {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 0 8px rgba(77,217,232,0.15);
+  }
+
   /* ── Status toast ── */
   #status-toast {
     position: absolute;
@@ -4661,6 +4707,82 @@ function initCommandPalette() {
   window._cmdPaletteOpen = open;
 }
 
+// ── Custom Tooltips ──
+function initCustomTooltips() {
+  var tip = document.createElement('div');
+  tip.className = 'viz-tip';
+  document.body.appendChild(tip);
+
+  var showTimer = null;
+  var currentTarget = null;
+
+  // Intercept title attributes — move to data-tip to prevent native tooltips
+  function harvestTitles() {
+    document.querySelectorAll('[title]').forEach(function(el) {
+      if (!el.dataset.tip) {
+        el.dataset.tip = el.getAttribute('title');
+        el.removeAttribute('title');
+      }
+    });
+  }
+
+  // Run on load, then periodically to catch dynamically added elements
+  harvestTitles();
+  var observer = new MutationObserver(function() { harvestTitles(); });
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['title'] });
+
+  function show(el) {
+    var text = el.dataset.tip;
+    if (!text) return;
+    tip.textContent = text;
+    tip.classList.remove('above', 'visible');
+
+    // Position below the element by default
+    var rect = el.getBoundingClientRect();
+    var tipW = tip.offsetWidth || 200;
+    var tipH = tip.offsetHeight || 30;
+
+    var left = rect.left + (rect.width / 2) - (tipW / 2);
+    var top = rect.bottom + 8;
+
+    // Flip above if too close to bottom
+    if (top + tipH > window.innerHeight - 10) {
+      top = rect.top - tipH - 8;
+      tip.classList.add('above');
+    }
+    // Clamp horizontal
+    if (left < 8) left = 8;
+    if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+    requestAnimationFrame(function() { tip.classList.add('visible'); });
+  }
+
+  function hide() {
+    clearTimeout(showTimer);
+    tip.classList.remove('visible');
+    currentTarget = null;
+  }
+
+  document.addEventListener('mouseover', function(e) {
+    var el = e.target.closest('[data-tip]');
+    if (!el || el === currentTarget) return;
+    hide();
+    currentTarget = el;
+    showTimer = setTimeout(function() { show(el); }, 400);
+  });
+
+  document.addEventListener('mouseout', function(e) {
+    var el = e.target.closest('[data-tip]');
+    if (el === currentTarget) hide();
+  });
+
+  // Hide on scroll/click
+  document.addEventListener('scroll', hide, true);
+  document.addEventListener('click', hide);
+}
+
 // ── Init ──
 window.addEventListener('DOMContentLoaded', function() {
   boot();
@@ -4679,6 +4801,7 @@ window.addEventListener('DOMContentLoaded', function() {
   initMobilePanel();
   initNotifications();
   initConnSettings();
+  initCustomTooltips();
 });
 window.addEventListener('resize', function() {
   if (simulation) {
