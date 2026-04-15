@@ -146,6 +146,7 @@
     outline: none;
     transition: all 0.2s ease;
   }
+  #search-box input::placeholder { text-align: center; }
   #search-box input:focus { border-color: var(--cyan); box-shadow: 0 0 20px var(--glow-cyan); }
   #search-box::before {
     content: '⌕';
@@ -649,6 +650,46 @@
     display: none;
     animation: fadeSlideUp 0.3s ease;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* ── Version Badge ── */
+  #version-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    z-index: 12;
+    font: 400 10px 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: opacity 0.2s, background 0.2s;
+  }
+  #version-badge:hover {
+    opacity: 1;
+    background: var(--bg-glass);
+  }
+  #version-badge.update-available {
+    opacity: 1;
+    color: #7ee787;
+    background: rgba(126,231,135,0.1);
+    border: 1px solid rgba(126,231,135,0.2);
+  }
+
+  .btn-expand, .btn-edit {
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-expand:hover, .btn-edit:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
   }
 
   /* ── Timeline Bar ── */
@@ -1450,6 +1491,7 @@
     <div class="refresh-indicator"><span class="pulse-dot"></span><span id="refresh-label">Live · 274 drawers</span> <span id="conn-indicator" class="conn-badge demo" style="cursor:pointer" title="Connection settings">DEMO</span></div>
     <div id="minimap"><canvas id="minimap-canvas"></canvas><div class="viewport-rect" id="minimap-vp"></div></div>
     <div id="status-toast"></div>
+    <div id="version-badge" title="Click to check for updates" onclick="checkForUpdates()">Viz v1.4.0</div>
     <div id="kbd-hint">
       <span><kbd>?</kbd> keys</span>
       <span><kbd>⌘K</kbd> commands</span>
@@ -1990,6 +2032,8 @@ var connMode = localStorage.getItem('mempalace-conn-mode') || 'auto'; // 'local'
 var connUrl = localStorage.getItem('mempalace-conn-url') || '';
 var MCP_ENDPOINT = '/api/mcp';
 let sessionId = null;
+var VIZ_VERSION = '1.4.0';
+var serverVersion = null; // populated from MCP initialize response
 
 function getConnectionMode() {
   if (connMode !== 'auto') return connMode;
@@ -2089,7 +2133,7 @@ function initConnSettings() {
       var resp = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: '3' } } }),
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: VIZ_VERSION } } }),
       });
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       var data = JSON.parse((await resp.text()).split('\n')[0]);
@@ -2170,29 +2214,52 @@ async function fetchLive(silent) {
   try {
     if (!silent) document.getElementById('refresh-label').textContent = 'Connecting…';
     sessionId = null; // fresh session each fetch
-    await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: '3' } });
+    const initResp = await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: VIZ_VERSION } });
+
+    // Capture server version from initialize response
+    if (initResp.result && initResp.result.serverInfo) {
+      serverVersion = initResp.result.serverInfo.version || null;
+      updateVersionBadge();
+    }
 
     // Get status
     const statusResp = await mpcCall('tools/call', { name: 'mempalace_status', arguments: {} }, 2);
     const status = JSON.parse(statusResp.result.content[0].text);
 
-    // Get all rooms via search (traverse requires start_room param, search is more reliable)
+    // Detect wing name from status
+    const wingNames = Object.keys(status.wings || {});
+    const wingName = wingNames[0] || 'default';
+
+    // Use list_drawers (v3.3.0) for each room — returns drawer_id and content preview
     const rooms = Object.keys(status.rooms);
-    const palaceData = { wing: 'demo', total_drawers: status.total_drawers, rooms: [] };
+    const palaceData = { wing: wingName, total_drawers: status.total_drawers, rooms: [] };
 
     for (let i = 0; i < rooms.length; i++) {
       const roomName = rooms[i];
-      const resp = await mpcCall('tools/call', { name: 'mempalace_search', arguments: { query: '*', room: roomName, limit: 500 } }, 10 + i);
-      const content = JSON.parse(resp.result.content[0].text);
-      const results = content.results || content.drawers || [];
-      const drawers = results.map(d => ({
-        t: (d.title || d.text || '').substring(0, 90),
-        s: d.source_file || d.metadata?.source_file || '',
-        l: (d.text || '').length,
-        p: d.text || '',
-        d: d.metadata?.filed_at || d.filed_at || '',
-      }));
-      palaceData.rooms.push({ name: roomName, drawers });
+      const roomDrawers = [];
+      let offset = 0;
+      const pageSize = 100;
+
+      // Paginate through all drawers in this room
+      while (true) {
+        const resp = await mpcCall('tools/call', { name: 'mempalace_list_drawers', arguments: { room: roomName, wing: wingName, limit: pageSize, offset } }, 10 + i * 100 + offset);
+        const content = JSON.parse(resp.result.content[0].text);
+        const batch = content.drawers || [];
+        batch.forEach(d => {
+          roomDrawers.push({
+            id: d.drawer_id || '',
+            t: (d.content_preview || '').substring(0, 90),
+            s: '',
+            l: (d.content_preview || '').length,
+            p: d.content_preview || '',
+            d: '',
+          });
+        });
+        if (batch.length < pageSize) break;
+        offset += pageSize;
+      }
+
+      palaceData.rooms.push({ name: roomName, drawers: roomDrawers });
     }
 
     const prevCount = palace ? palace.total_drawers : 0;
@@ -2237,7 +2304,7 @@ function render(data) {
   links = [];
 
   // Root node
-  const rootNode = { id: 'root', label: 'demo', type: 'root', r: 28, color: '#4dd9e8' };
+  const rootNode = { id: 'root', label: data.wing || 'palace', type: 'root', r: 28, color: '#4dd9e8' };
   nodes.push(rootNode);
 
   let totalDrawers = 0;
@@ -2250,8 +2317,8 @@ function render(data) {
     links.push({ source: 'root', target: roomNode.id, type: 'room-link' });
 
     room.drawers.forEach((d, i) => {
-      const did = 'drawer_' + room.name + '_' + i;
-      nodes.push({ id: did, label: d.t, type: 'drawer', r: 3 + Math.min(Math.sqrt(d.l / 100), 6), color: roomColor, room: room.name, data: d });
+      const did = d.id || ('drawer_' + room.name + '_' + i);
+      nodes.push({ id: did, label: d.t, type: 'drawer', r: 3 + Math.min(Math.sqrt(d.l / 100), 6), color: roomColor, room: room.name, drawerId: d.id || null, data: d });
       links.push({ source: roomNode.id, target: did, type: 'drawer-link' });
       sources.add(d.s);
       totalDrawers++;
@@ -2587,15 +2654,149 @@ function showDetail(d) {
     rendered = rendered.replace(re, '<mark>$1</mark>');
   }
   const dateStr = data.d ? new Date(data.d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+  const drawerId = d.drawerId || '';
   el.innerHTML = `
     <div class="detail-room-badge" style="background:${d.color}22;color:${d.color}">${d.room}</div>
     <div class="detail-title">${escHtml(data.t)}</div>
-    <div class="detail-meta">source: ${escHtml(data.s)} · ${data.l.toLocaleString()} chars${dateStr ? ' · ' + dateStr : ''}</div>
-    <div class="detail-content">${rendered}</div>
+    <div class="detail-meta">source: ${escHtml(data.s)} · ${data.l.toLocaleString()} chars${dateStr ? ' · ' + dateStr : ''}${drawerId ? ' · <span style="opacity:0.5;font-size:10px">' + drawerId.slice(-8) + '</span>' : ''}</div>
+    <div class="detail-content" id="detail-content-area">${rendered}</div>
     <div class="detail-actions">
+      ${drawerId ? '<button class="btn-expand" onclick="fetchFullDrawer(\'' + drawerId + '\')">📄 Full Content</button>' : ''}
+      ${drawerId ? '<button class="btn-edit" onclick="editDrawer(\'' + drawerId + '\', \'' + d.room + '\')">✏️ Edit</button>' : ''}
       <button class="btn-tunnels" onclick="findTunnels('${escHtml(data.t).replace(/'/g, "\\'")}')">🔗 Tunnels</button>
-      <button class="btn-danger" onclick="deleteDrawer(this, '${escHtml(data.t).replace(/'/g, "\\'")}', '${d.room}')">🗑 Delete</button>
+      <button class="btn-danger" onclick="deleteDrawer(this, '${escHtml(data.t).replace(/'/g, "\\'")}', '${d.room}'${drawerId ? ', \'' + drawerId + '\'' : ''})">🗑 Delete</button>
     </div>`;
+}
+
+// ── Fetch full drawer content (v3.3.0 get_drawer) ──
+async function fetchFullDrawer(drawerId) {
+  var contentArea = document.getElementById('detail-content-area');
+  if (!contentArea) return;
+  contentArea.innerHTML = '<em style="color:var(--fg-dim)">Loading full content…</em>';
+  try {
+    sessionId = null;
+    await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: VIZ_VERSION } });
+    var resp = await mpcCall('tools/call', { name: 'mempalace_get_drawer', arguments: { drawer_id: drawerId } }, 2);
+    var drawer = JSON.parse(resp.result.content[0].text);
+    var fullContent = drawer.content || '';
+    var rendered = fullContent ? DOMPurify.sanitize(marked.parse(fullContent)) : '<em>Empty drawer.</em>';
+    contentArea.innerHTML = rendered;
+    // Update the node's cached data
+    var node = nodes.find(n => n.drawerId === drawerId);
+    if (node && node.data) {
+      node.data.p = fullContent;
+      node.data.l = fullContent.length;
+      node.data.s = drawer.metadata?.source_file || node.data.s;
+      node.data.d = drawer.metadata?.filed_at || node.data.d;
+      // Update meta line
+      var metaEl = document.querySelector('.detail-meta');
+      var dateStr = node.data.d ? new Date(node.data.d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+      if (metaEl) metaEl.innerHTML = 'source: ' + escHtml(node.data.s) + ' · ' + node.data.l.toLocaleString() + ' chars' + (dateStr ? ' · ' + dateStr : '') + ' · <span style="opacity:0.5;font-size:10px">' + drawerId.slice(-8) + '</span>';
+    }
+  } catch (e) {
+    contentArea.innerHTML = '<em style="color:#ff6b6b">Failed to load: ' + escHtml(e.message) + '</em>';
+  }
+}
+
+// ── Edit drawer (v3.3.0 update_drawer) ──
+async function editDrawer(drawerId, room) {
+  var contentArea = document.getElementById('detail-content-area');
+  if (!contentArea) return;
+  // Fetch current content first
+  try {
+    sessionId = null;
+    await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: VIZ_VERSION } });
+    var resp = await mpcCall('tools/call', { name: 'mempalace_get_drawer', arguments: { drawer_id: drawerId } }, 2);
+    var drawer = JSON.parse(resp.result.content[0].text);
+    var currentContent = drawer.content || '';
+    var currentRoom = drawer.room || room;
+
+    // Build edit form
+    contentArea.innerHTML = '<div class="edit-form">' +
+      '<label style="font-size:12px;color:var(--fg-dim)">Room</label>' +
+      '<select id="edit-room" style="width:100%;padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--fg);margin-bottom:8px">' +
+      Object.keys(palace.rooms.reduce(function(a,r){a[r.name]=1;return a},{})).map(function(r) { return '<option value="' + r + '"' + (r === currentRoom ? ' selected' : '') + '>' + r + '</option>'; }).join('') +
+      '</select>' +
+      '<label style="font-size:12px;color:var(--fg-dim)">Content</label>' +
+      '<textarea id="edit-content" style="width:100%;min-height:200px;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-size:13px;font-family:inherit;resize:vertical">' + escHtml(currentContent) + '</textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:8px">' +
+      '<button onclick="saveDrawerEdit(\'' + drawerId + '\')" style="flex:1;padding:8px;background:var(--cyan);color:#000;border:none;border-radius:6px;cursor:pointer;font-weight:600">Save</button>' +
+      '<button onclick="showDetail(selectedNode)" style="flex:1;padding:8px;background:var(--bg-elev);color:var(--fg);border:1px solid var(--border);border-radius:6px;cursor:pointer">Cancel</button>' +
+      '</div></div>';
+  } catch (e) {
+    showToast('Failed to load drawer for editing: ' + e.message);
+  }
+}
+
+async function saveDrawerEdit(drawerId) {
+  var contentEl = document.getElementById('edit-content');
+  var roomEl = document.getElementById('edit-room');
+  if (!contentEl || !roomEl) return;
+  var newContent = contentEl.value.trim();
+  var newRoom = roomEl.value;
+  if (newContent.length < 5) { showToast('Content too short'); return; }
+
+  try {
+    sessionId = null;
+    await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: VIZ_VERSION } });
+    var args = { drawer_id: drawerId, content: newContent, room: newRoom };
+    var resp = await mpcCall('tools/call', { name: 'mempalace_update_drawer', arguments: args }, 2);
+    if (resp.error) throw new Error(resp.error.message || 'Update failed');
+    showToast('Drawer updated');
+    // Refresh to reflect changes
+    setTimeout(function() { fetchLive(true); }, 1000);
+  } catch (e) {
+    showToast('Update failed: ' + e.message);
+  }
+}
+
+// ── Version badge ──
+function updateVersionBadge() {
+  var el = document.getElementById('version-badge');
+  if (!el) return;
+  var parts = ['Viz v' + VIZ_VERSION];
+  if (serverVersion) parts.push('Palace v' + serverVersion);
+  el.textContent = parts.join(' · ');
+}
+
+async function checkForUpdates() {
+  var el = document.getElementById('version-badge');
+  if (!el) return;
+  el.textContent = 'Checking…';
+  try {
+    // Check MemPalaceViz latest release
+    var vizResp = await fetch('https://api.github.com/repos/JoeDoesJits/mempalace-viz/releases/latest', { headers: { 'Accept': 'application/vnd.github.v3+json' } }).catch(() => null);
+    var vizLatest = null;
+    if (vizResp && vizResp.ok) {
+      var vizData = await vizResp.json();
+      vizLatest = (vizData.tag_name || '').replace(/^v/, '');
+    }
+    // Check MemPalace latest from PyPI
+    var pypiResp = await fetch('https://pypi.org/pypi/mempalace/json').catch(() => null);
+    var palaceLatest = null;
+    if (pypiResp && pypiResp.ok) {
+      var pypiData = await pypiResp.json();
+      palaceLatest = pypiData.info?.version || null;
+    }
+
+    // Compare versions
+    var updates = [];
+    if (vizLatest && vizLatest !== VIZ_VERSION) updates.push('Viz: ' + VIZ_VERSION + ' → ' + vizLatest);
+    if (palaceLatest && serverVersion && palaceLatest !== serverVersion) updates.push('Palace: ' + serverVersion + ' → ' + palaceLatest);
+
+    updateVersionBadge();
+    if (updates.length > 0) {
+      el.classList.add('update-available');
+      el.title = 'Updates available!\n' + updates.join('\n');
+      showToast('Updates available: ' + updates.join(', '));
+    } else {
+      el.classList.remove('update-available');
+      showToast('Everything is up to date');
+    }
+  } catch (e) {
+    updateVersionBadge();
+    showToast('Update check failed: ' + e.message);
+  }
 }
 
 function showTooltip(e, d) {
@@ -2668,7 +2869,7 @@ function initDashControls() {
     try {
       showToast('Fetching status…');
       sessionId = null;
-      await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: '3' } });
+      await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: VIZ_VERSION } });
       const resp = await mpcCall('tools/call', { name: 'mempalace_status', arguments: {} }, 2);
       const s = JSON.parse(resp.result.content[0].text);
       const roomInfo = Object.entries(s.rooms).map(function(r) { return r[0] + ': ' + r[1]; }).join(', ');
@@ -3079,11 +3280,11 @@ function initAddDrawerForm() {
       await mpcCall('initialize', {
         protocolVersion: '2025-06-18',
         capabilities: {},
-        clientInfo: { name: 'palace-viz', version: '3' }
+        clientInfo: { name: 'palace-viz', version: VIZ_VERSION }
       });
 
       var args = {
-        wing: 'demo',
+        wing: palace?.wing || 'default',
         room: room,
         content: content,
         added_by: 'dashboard'
@@ -3539,7 +3740,7 @@ function renderStats() {
 }
 
 // ── Delete Drawer ──
-async function deleteDrawer(btn, title, room) {
+async function deleteDrawer(btn, title, room, drawerId) {
   // Two-click confirm
   if (!btn.classList.contains('confirm')) {
     btn.classList.add('confirm');
@@ -3556,11 +3757,16 @@ async function deleteDrawer(btn, title, room) {
     await mpcCall('initialize', {
       protocolVersion: '2025-06-18',
       capabilities: {},
-      clientInfo: { name: 'palace-viz', version: '3' }
+      clientInfo: { name: 'palace-viz', version: VIZ_VERSION }
     });
+    // Use delete_drawer with ID if available (v3.3.0), fall back to kg_invalidate
+    var toolName = drawerId ? 'mempalace_delete_drawer' : 'mempalace_kg_invalidate';
+    var toolArgs = drawerId
+      ? { drawer_id: drawerId }
+      : { query: title, room: room, wing: palace?.wing || 'default' };
     var result = await mpcCall('tools/call', {
-      name: 'mempalace_kg_invalidate',
-      arguments: { query: title, room: room, wing: 'demo' }
+      name: toolName,
+      arguments: toolArgs
     }, 2);
     var text = result?.result?.content?.[0]?.text || 'Done';
     showToast('Deleted: ' + title.substring(0, 40));
@@ -3589,7 +3795,7 @@ async function findTunnels(title) {
     await mpcCall('initialize', {
       protocolVersion: '2025-06-18',
       capabilities: {},
-      clientInfo: { name: 'palace-viz', version: '3' }
+      clientInfo: { name: 'palace-viz', version: VIZ_VERSION }
     });
     var result = await mpcCall('tools/call', {
       name: 'mempalace_find_tunnels',
@@ -3634,7 +3840,7 @@ function initNotifications() {
       await mpcCall('initialize', {
         protocolVersion: '2025-06-18',
         capabilities: {},
-        clientInfo: { name: 'palace-viz', version: '3' }
+        clientInfo: { name: 'palace-viz', version: VIZ_VERSION }
       });
       var resp = await mpcCall('tools/call', { name: 'mempalace_status', arguments: {} }, 2);
       var text = resp?.result?.content?.[0]?.text || '';
@@ -3695,13 +3901,13 @@ async function bulkDelete() {
     await mpcCall('initialize', {
       protocolVersion: '2025-06-18',
       capabilities: {},
-      clientInfo: { name: 'palace-viz', version: '3' }
+      clientInfo: { name: 'palace-viz', version: VIZ_VERSION }
     });
     for (var i = 0; i < selected.length; i++) {
       var n = selected[i];
       await mpcCall('tools/call', {
         name: 'mempalace_kg_invalidate',
-        arguments: { query: n.label, room: n.room, wing: 'demo' }
+        arguments: { query: n.label, room: n.room, wing: palace?.wing || 'default' }
       }, 10 + i);
     }
     showToast('Deleted ' + selected.length + ' drawers');
@@ -4373,6 +4579,7 @@ function initCommandPalette() {
     { icon: '🌓', label: 'Toggle light/dark theme', hint: '', action: function() { document.getElementById('btn-theme').click(); } },
     { icon: '⌨', label: 'Keyboard shortcuts reference', hint: '?', action: toggleKbOverlay },
     { icon: '⚡', label: 'Connection settings', hint: '', action: openConnSettings },
+    { icon: '🔄', label: 'Check for updates', hint: '', action: checkForUpdates },
   ];
 
   function renderCommands(filter) {
