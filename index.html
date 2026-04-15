@@ -1459,26 +1459,26 @@
     <div id="svg-layer"><svg id="svg"></svg></div>
     <div id="controls">
       <div class="controls-row">
-        <button id="btn-reset">Reset</button>
-        <button id="btn-explode">Explode</button>
-        <button id="btn-orbit">Orbit</button>
-        <button id="btn-cluster" class="active">Cluster</button>
-        <div id="search-box"><input id="q" type="search" placeholder="Search" autocomplete="off"></div>
-        <span id="search-count"></span>
+        <button id="btn-reset" title="Reset view and zoom (0)">Reset</button>
+        <button id="btn-explode" title="Explode layout — spread all nodes outward (1)">Explode</button>
+        <button id="btn-orbit" title="Orbit layout — arrange rooms in a ring (2)">Orbit</button>
+        <button id="btn-cluster" class="active" title="Cluster layout — group drawers around rooms (3)">Cluster</button>
+        <div id="search-box"><input id="q" type="search" placeholder="Search" autocomplete="off" title="Search drawers by title, content, or source"></div>
+        <span id="search-count" title="Number of matching drawers"></span>
       </div>
       <div class="controls-row">
         <div id="color-mode-bar">
-          <button class="active" data-cmode="room">Room</button>
-          <button data-cmode="recency">Recency</button>
-          <button data-cmode="size">Size</button>
-          <button data-cmode="decay">Decay</button>
-          <button data-cmode="semantic">Topics</button>
+          <button class="active" data-cmode="room" title="Color nodes by room category">Room</button>
+          <button data-cmode="recency" title="Color nodes by how recently they were created">Recency</button>
+          <button data-cmode="size" title="Color nodes by content length">Size</button>
+          <button data-cmode="decay" title="Color nodes by knowledge decay — older = cooler">Decay</button>
+          <button data-cmode="semantic" title="Color nodes by AI-detected topic clusters">Topics</button>
         </div>
         <button class="filter-toggle" id="btn-filters" title="Date range filter">⚙ Filters</button>
       </div>
       <div class="controls-row controls-row-filters" id="filter-row">
-        <label>From</label><input type="date" id="filter-from">
-        <label>To</label><input type="date" id="filter-to">
+        <label>From</label><input type="date" id="filter-from" title="Show only drawers created after this date">
+        <label>To</label><input type="date" id="filter-to" title="Show only drawers created before this date">
         <button class="filter-clear" id="filter-clear" title="Clear filters">✕</button>
       </div>
       <div id="cluster-legend"></div>
@@ -1488,8 +1488,8 @@
     <button id="btn-mobile-reload" title="Reload page" onclick="window.location.reload()">↻</button>
     <div id="tooltip"></div>
     <div class="refresh-bar"><div class="progress" id="refresh-progress"></div></div>
-    <div class="refresh-indicator"><span class="pulse-dot"></span><span id="refresh-label">Live · 274 drawers</span> <span id="conn-indicator" class="conn-badge demo" style="cursor:pointer" title="Connection settings">DEMO</span></div>
-    <div id="minimap"><canvas id="minimap-canvas"></canvas><div class="viewport-rect" id="minimap-vp"></div></div>
+    <div class="refresh-indicator" title="Connection status and auto-refresh progress"><span class="pulse-dot"></span><span id="refresh-label">Live · 274 drawers</span> <span id="conn-indicator" class="conn-badge demo" style="cursor:pointer" title="Connection settings">DEMO</span></div>
+    <div id="minimap" title="Minimap — drag to pan the view"><canvas id="minimap-canvas"></canvas><div class="viewport-rect" id="minimap-vp"></div></div>
     <div id="status-toast"></div>
     <div id="version-badge" title="Click to check for updates" onclick="checkForUpdates()">Viz v1.4.0</div>
     <div id="kbd-hint">
@@ -1501,9 +1501,9 @@
     </div>
     <div id="timeline-bar">
       <button id="timeline-play" title="Play/Pause timeline">▶</button>
-      <input type="range" id="timeline-slider" min="0" max="100" value="100" step="1">
-      <span id="timeline-date">All time</span>
-      <span id="timeline-count"></span>
+      <input type="range" id="timeline-slider" min="0" max="100" value="100" step="1" title="Scrub through time — slide left to see older memories">
+      <span id="timeline-date" title="Current timeline position">All time</span>
+      <span id="timeline-count" title="Number of visible drawers at this point in time"></span>
     </div>
   </div>
   <aside id="panel">
@@ -1512,10 +1512,10 @@
       <div class="palace-title">MemPalaceViz</div>
       <div class="palace-sub">wing demo · crystal fortress</div>
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-val" id="s-drawers">0</div><div class="stat-label">Drawers</div></div>
-        <div class="stat-card"><div class="stat-val" id="s-rooms">0</div><div class="stat-label">Rooms</div></div>
-        <div class="stat-card"><div class="stat-val" id="s-wing">1</div><div class="stat-label">Wing</div></div>
-        <div class="stat-card"><div class="stat-val" id="s-sources">0</div><div class="stat-label">Sources</div></div>
+        <div class="stat-card" title="Total memories stored in your palace"><div class="stat-val" id="s-drawers">0</div><div class="stat-label">Drawers</div></div>
+        <div class="stat-card" title="Number of topic rooms"><div class="stat-val" id="s-rooms">0</div><div class="stat-label">Rooms</div></div>
+        <div class="stat-card" title="Number of palace wings"><div class="stat-val" id="s-wing">1</div><div class="stat-label">Wing</div></div>
+        <div class="stat-card" title="Unique sources that contributed memories"><div class="stat-val" id="s-sources">0</div><div class="stat-label">Sources</div></div>
       </div>
     </div>
     <div id="panel-scroll">
@@ -1528,10 +1528,10 @@
         <button class="dash-btn" id="btn-export" title="Export palace data as JSON"><span class="icon">↓</span> Export</button>
       </div>
       <div class="panel-tabs">
-        <button class="panel-tab active" data-tab="selection">Selection</button>
-        <button class="panel-tab" data-tab="list">List</button>
-        <button class="panel-tab" data-tab="stats">Insights</button>
-        <button class="panel-tab" data-tab="add">+ Add</button>
+        <button class="panel-tab active" data-tab="selection" title="View selected node details">Selection</button>
+        <button class="panel-tab" data-tab="list" title="Browse all drawers in a sortable list">List</button>
+        <button class="panel-tab" data-tab="stats" title="Palace analytics — room distribution, source breakdown">Insights</button>
+        <button class="panel-tab" data-tab="add" title="Add a new memory to your palace">+ Add</button>
       </div>
       <div id="tab-selection">
         <div id="detail"><div class="detail-empty">Click a node to inspect a memory.</div></div>
@@ -1541,7 +1541,7 @@
       <div id="add-drawer-panel">
         <div class="add-form-group">
           <label for="add-room">Room</label>
-          <select id="add-room">
+          <select id="add-room" title="Choose which room to file this memory in">
             <option value="">Select a room…</option>
             <option value="projects">🟠 projects</option>
             <option value="work">🟡 work</option>
@@ -1555,14 +1555,14 @@
         </div>
         <div class="add-form-group">
           <label for="add-source">Source <span style="opacity:0.5">(optional)</span></label>
-          <input type="text" id="add-source" placeholder="e.g. claude-session, manual, article-url">
+          <input type="text" id="add-source" placeholder="e.g. claude-session, manual, article-url" title="Where this memory came from (optional)">
         </div>
         <div class="add-form-group">
           <label for="add-content">Content</label>
-          <textarea id="add-content" placeholder="Verbatim content to store — exact words, never summarized."></textarea>
+          <textarea id="add-content" placeholder="Verbatim content to store — exact words, never summarized." title="The exact content to store — paste or type the full text"></textarea>
           <div class="add-char-count"><span id="add-char-num">0</span> chars</div>
         </div>
-        <button id="add-submit-btn" disabled>Add to Palace</button>
+        <button id="add-submit-btn" disabled title="File this memory into the selected room">Add to Palace</button>
         <div id="add-form-status"></div>
       </div>
     </div>
@@ -1574,13 +1574,13 @@
     <h3>Connect to MemPalace <span id="conn-mode-badge" class="conn-badge demo">DEMO</span></h3>
     <div class="conn-subtitle">Choose how to connect to your MCP server</div>
     <div class="conn-mode-tabs">
-      <button class="conn-mode-tab active" data-conn="local">Local Server</button>
-      <button class="conn-mode-tab" data-conn="hosted">Hosted (CF Proxy)</button>
-      <button class="conn-mode-tab" data-conn="demo">Demo Data</button>
+      <button class="conn-mode-tab active" data-conn="local" title="Connect to a MemPalace MCP server running on your machine">Local Server</button>
+      <button class="conn-mode-tab" data-conn="hosted" title="Connect via a Cloudflare Pages proxy to a remote server">Hosted (CF Proxy)</button>
+      <button class="conn-mode-tab" data-conn="demo" title="Load sample data without any server connection">Demo Data</button>
     </div>
     <div class="conn-section visible" id="conn-local">
       <label>MCP Server URL</label>
-      <input type="text" id="conn-local-url" placeholder="http://localhost:8765/mcp">
+      <input type="text" id="conn-local-url" placeholder="http://localhost:8765/mcp" title="URL of your local MCP server (mcp-proxy default: localhost:8765)">
       <div class="conn-hint">
         Run your MemPalace MCP server locally, then bridge to HTTP:<br>
         <code>pip install mcp-proxy</code><br>
@@ -1590,7 +1590,7 @@
     </div>
     <div class="conn-section" id="conn-hosted">
       <label>Proxy Endpoint</label>
-      <input type="text" id="conn-hosted-url" placeholder="/api/mcp">
+      <input type="text" id="conn-hosted-url" placeholder="/api/mcp" title="Cloudflare Pages Function endpoint that proxies to your MCP server">
       <div class="conn-hint">
         For production hosting, use a CF Pages Function as a proxy.<br>
         See <code>docs/DEPLOYMENT.md</code> for the full Cloudflare setup guide.<br>
@@ -1605,8 +1605,8 @@
     </div>
     <div id="conn-status" class="conn-status"></div>
     <div class="conn-actions">
-      <button class="conn-btn-secondary" id="conn-cancel">Cancel</button>
-      <button class="conn-btn-primary" id="conn-test">Test &amp; Connect</button>
+      <button class="conn-btn-secondary" id="conn-cancel" title="Close without changing connection">Cancel</button>
+      <button class="conn-btn-primary" id="conn-test" title="Send a test handshake and connect if successful">Test &amp; Connect</button>
     </div>
   </div>
 </div>
@@ -2661,10 +2661,10 @@ function showDetail(d) {
     <div class="detail-meta">source: ${escHtml(data.s)} · ${data.l.toLocaleString()} chars${dateStr ? ' · ' + dateStr : ''}${drawerId ? ' · <span style="opacity:0.5;font-size:10px">' + drawerId.slice(-8) + '</span>' : ''}</div>
     <div class="detail-content" id="detail-content-area">${rendered}</div>
     <div class="detail-actions">
-      ${drawerId ? '<button class="btn-expand" onclick="fetchFullDrawer(\'' + drawerId + '\')">📄 Full Content</button>' : ''}
-      ${drawerId ? '<button class="btn-edit" onclick="editDrawer(\'' + drawerId + '\', \'' + d.room + '\')">✏️ Edit</button>' : ''}
-      <button class="btn-tunnels" onclick="findTunnels('${escHtml(data.t).replace(/'/g, "\\'")}')">🔗 Tunnels</button>
-      <button class="btn-danger" onclick="deleteDrawer(this, '${escHtml(data.t).replace(/'/g, "\\'")}', '${d.room}'${drawerId ? ', \'' + drawerId + '\'' : ''})">🗑 Delete</button>
+      ${drawerId ? '<button class="btn-expand" title="Fetch the complete drawer content from the server" onclick="fetchFullDrawer(\'' + drawerId + '\')">📄 Full Content</button>' : ''}
+      ${drawerId ? '<button class="btn-edit" title="Edit this drawer\'s content and room" onclick="editDrawer(\'' + drawerId + '\', \'' + d.room + '\')">✏️ Edit</button>' : ''}
+      <button class="btn-tunnels" title="Find related drawers across rooms" onclick="findTunnels('${escHtml(data.t).replace(/'/g, "\\'")}')">🔗 Tunnels</button>
+      <button class="btn-danger" title="Permanently delete this drawer" onclick="deleteDrawer(this, '${escHtml(data.t).replace(/'/g, "\\'")}', '${d.room}'${drawerId ? ', \'' + drawerId + '\'' : ''})">🗑 Delete</button>
     </div>`;
 }
 
