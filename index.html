@@ -662,7 +662,7 @@
     content: '';
     position: absolute;
     top: -4px;
-    left: 16px;
+    left: var(--arrow-x, 16px);
     width: 8px;
     height: 8px;
     background: var(--bg-glass);
@@ -4756,6 +4756,10 @@ function initCustomTooltips() {
 
     tip.style.left = left + 'px';
     tip.style.top = top + 'px';
+    // Point the arrow at the center of the target element
+    var arrowX = rect.left + (rect.width / 2) - left - 4; // -4 for half arrow width
+    arrowX = Math.max(8, Math.min(arrowX, tipW - 16)); // clamp within tooltip
+    tip.style.setProperty('--arrow-x', arrowX + 'px');
     requestAnimationFrame(function() { tip.classList.add('visible'); });
   }
 
