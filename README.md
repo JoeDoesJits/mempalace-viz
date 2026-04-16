@@ -18,23 +18,30 @@ Built as a single-file SPA with D3.js force-directed graphs, canvas particle eff
 |:---:|:---:|
 | ![Drawer Detail](docs/screenshots/drawer-detail.png) | ![Drawer List](docs/screenshots/drawer-list.png) |
 
-| Connection Settings | Command Palette | Mobile |
-|:---:|:---:|:---:|
-| ![Connection Settings](docs/screenshots/connection-settings.png) | ![Command Palette](docs/screenshots/command-palette.png) | ![Mobile](docs/screenshots/mobile-view.png) |
+| Themed Tooltips | Connection Settings |
+|:---:|:---:|
+| ![Themed Tooltips](docs/screenshots/tooltip-demo.png) | ![Connection Settings](docs/screenshots/connection-settings.png) |
+
+| Command Palette | Mobile |
+|:---:|:---:|
+| ![Command Palette](docs/screenshots/command-palette.png) | ![Mobile](docs/screenshots/mobile-view.png) |
 
 ## Features
 
 - **Force-directed graph** rendering hundreds of knowledge nodes across rooms
+- **MemPalace v3.3.0 integration** — paginated `list_drawers`, `get_drawer` full content, `update_drawer` inline edit, `delete_drawer` by ID
+- **Connection settings** — 3-tab modal (Local Server, Hosted, Demo) with auto-detection and Test & Connect
+- **Version tracker** — badge showing Viz + Palace versions, update checker via GitHub Releases and PyPI
+- **Themed tooltips** — 54 glassmorphic tooltips replacing native browser titles, with dynamic arrow alignment
 - **5 color modes:** Room, Recency, Size, Decay, and Semantic Topics (TF-IDF + k-means clustering)
 - **3 layout modes:** Explode, Orbit, Cluster
 - **Crystal Palace light theme** with sparkle particle effects
 - **Fuzzy multi-token search** with date range filters
 - **Structural gap detection** with Palace Health Score (0-100)
-- **Live MCP integration** for real-time data from MemPalace server
-- **Drawer management:** add, delete, find tunnels (related drawers)
+- **Drawer management:** add, edit, delete, fetch full content, find tunnels (related drawers)
 - **Bulk operations:** select, export, delete multiple drawers
 - **Timeline slider** with play/pause animation
-- **Command palette** (Ctrl+K) with 19 commands
+- **Command palette** (Ctrl+K) with 20+ commands
 - **Full keyboard navigation** (J/K, Enter, Escape, ?, F, L)
 - **Mobile responsive** bottom-sheet panel with touch gestures
 - **PNG screenshot capture** and JSON export
