@@ -2079,7 +2079,8 @@ var connUrl = localStorage.getItem('mempalace-conn-url') || '';
 var MCP_ENDPOINT = '/api/mcp';
 let sessionId = null;
 var VIZ_VERSION = '1.4.0';
-var serverVersion = null; // populated from MCP initialize response
+var serverVersion = null; // MemPalace package version (fetched from PyPI)
+var mcpFrameworkVersion = null; // MCP framework version from initialize response
 
 function getConnectionMode() {
   if (connMode !== 'auto') return connMode;
@@ -2262,11 +2263,15 @@ async function fetchLive(silent) {
     sessionId = null; // fresh session each fetch
     const initResp = await mpcCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'palace-viz', version: VIZ_VERSION } });
 
-    // Capture server version from initialize response
+    // Capture server info from initialize response (note: serverInfo.version is
+    // the MCP framework version, not the MemPalace package version — we fetch
+    // that separately from PyPI since no MCP tool exposes it)
     if (initResp.result && initResp.result.serverInfo) {
-      serverVersion = initResp.result.serverInfo.version || null;
-      updateVersionBadge();
+      mcpFrameworkVersion = initResp.result.serverInfo.version || null;
     }
+
+    // Fetch actual MemPalace package version from PyPI (fire-and-forget)
+    fetchPalaceVersion();
 
     // Get status
     const statusResp = await mpcCall('tools/call', { name: 'mempalace_status', arguments: {} }, 2);
@@ -2803,6 +2808,18 @@ function updateVersionBadge() {
   var parts = ['Viz v' + VIZ_VERSION];
   if (serverVersion) parts.push('Palace v' + serverVersion);
   el.textContent = parts.join(' · ');
+}
+
+// Fetch latest MemPalace version from PyPI (assumed installed version since
+// the MCP protocol doesn't expose the package version directly)
+async function fetchPalaceVersion() {
+  try {
+    var resp = await fetch('https://pypi.org/pypi/mempalace/json');
+    if (!resp.ok) return;
+    var data = await resp.json();
+    serverVersion = data.info && data.info.version;
+    updateVersionBadge();
+  } catch (e) { /* silent */ }
 }
 
 async function checkForUpdates() {
@@ -4806,6 +4823,7 @@ window.addEventListener('DOMContentLoaded', function() {
   initNotifications();
   initConnSettings();
   initCustomTooltips();
+  fetchPalaceVersion();
 });
 window.addEventListener('resize', function() {
   if (simulation) {
