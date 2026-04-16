@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <title>MemPalaceViz — The Crystal Fortress</title>
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
@@ -214,6 +215,15 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .palace-title .orb-logo {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 6px rgba(77, 217, 232, 0.5));
   }
   .palace-sub {
     font: 400 12px 'JetBrains Mono', monospace;
@@ -1555,7 +1565,35 @@
   <aside id="panel">
     <div id="mobile-pull-tab"></div>
     <div id="panel-header">
-      <div class="palace-title">MemPalaceViz</div>
+      <div class="palace-title">
+        <svg class="orb-logo" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <radialGradient id="orbLogoBg" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#1a2a5c"/><stop offset="50%" stop-color="#2d1b69"/><stop offset="100%" stop-color="#0a0520"/>
+            </radialGradient>
+            <radialGradient id="orbLogoGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="60%" stop-color="#4dd9e8" stop-opacity="0.3"/><stop offset="100%" stop-color="#4dd9e8" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="64" cy="64" r="60" fill="url(#orbLogoGlow)"/>
+          <circle cx="64" cy="64" r="44" fill="url(#orbLogoBg)"/>
+          <g opacity="0.45" stroke="#4dd9e8" stroke-width="0.7" fill="none">
+            <line x1="64" y1="64" x2="64" y2="40"/><line x1="64" y1="64" x2="81" y2="47"/>
+            <line x1="64" y1="64" x2="88" y2="64"/><line x1="64" y1="64" x2="81" y2="81"/>
+            <line x1="64" y1="64" x2="64" y2="88"/><line x1="64" y1="64" x2="47" y2="81"/>
+            <line x1="64" y1="64" x2="40" y2="64"/><line x1="64" y1="64" x2="47" y2="47"/>
+          </g>
+          <circle cx="64" cy="40" r="2.8" fill="#ff6b9d"/><circle cx="81" cy="47" r="2.8" fill="#ffd93d"/>
+          <circle cx="88" cy="64" r="2.8" fill="#6ee7b7"/><circle cx="81" cy="81" r="2.8" fill="#a78bfa"/>
+          <circle cx="64" cy="88" r="2.8" fill="#fb7185"/><circle cx="47" cy="81" r="2.8" fill="#60a5fa"/>
+          <circle cx="40" cy="64" r="2.8" fill="#f97316"/><circle cx="47" cy="47" r="2.8" fill="#fbbf24"/>
+          <circle cx="64" cy="64" r="4.5" fill="#4dd9e8"/>
+          <ellipse cx="50" cy="46" rx="14" ry="10" fill="#ffffff" opacity="0.12"/>
+          <ellipse cx="46" cy="42" rx="4.5" ry="2.8" fill="#ffffff" opacity="0.75"/>
+          <circle cx="64" cy="64" r="43.5" fill="none" stroke="#4dd9e8" stroke-width="0.5" opacity="0.4"/>
+        </svg>
+        <span>MemPalaceViz</span>
+      </div>
       <div class="palace-sub">wing demo · crystal fortress</div>
       <div class="stats-grid">
         <div class="stat-card" title="Total memories stored in your palace"><div class="stat-val" id="s-drawers">0</div><div class="stat-label">Drawers</div></div>

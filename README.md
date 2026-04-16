@@ -104,7 +104,9 @@ See the security architecture: **[docs/SECURITY.md](docs/SECURITY.md)**
 ```
 mempalace-viz/
 ├── index.html              # Dashboard (single-file SPA)
-├── logo.png                # Crystal prism favicon
+├── logo.svg                # Crystal orb logo (master)
+├── logo.png                # Crystal orb — rendered 512×512 for Apple/OG
+├── favicon.svg             # Simplified favicon for 16–32px
 ├── demo-palace.json        # Sanitized demo data (42 drawers)
 ├── robots.txt              # Disallow all crawlers
 ├── _headers                # X-Robots-Tag header
