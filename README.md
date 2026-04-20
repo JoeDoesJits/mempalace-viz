@@ -59,15 +59,51 @@ npx http-server -p 3456 -c-1
 # Open http://localhost:3456
 ```
 
-The dashboard automatically loads `demo-palace.json` with sample data if no MCP server is available.
+On first load you'll see **demo mode** — 42 sample drawers across 8 rooms — so you can explore the UI without any server running. The real fun starts once you connect it to **your** MemPalace.
 
-## Demo Mode
+## Connecting to Your MemPalace
 
-MemPalaceViz ships with a sanitized demo dataset (`demo-palace.json`) containing 42 sample drawers across 8 rooms. This loads automatically when no MCP server is reachable.
+Click the **status pill in the bottom-left** of the dashboard to open the Connection Settings modal. Three modes:
 
-To use your own data, either:
-1. Connect a MemPalace MCP server (see [Deployment Guide](docs/DEPLOYMENT.md))
-2. Replace `demo-palace.json` with your own data in the same format
+### 🖥️ Local Server (most common)
+
+If you're already running MemPalace locally via `mcp-proxy` (the standard setup), it's serving on `http://localhost:8000/servers/mempalace/mcp`. Just:
+
+1. Open Connection Settings → **Local Server** tab
+2. Confirm the URL (auto-filled)
+3. Click **Test & Connect**
+
+The dashboard will use the MCP `initialize` handshake, fetch your palace via `mempalace_status` + paginated `list_drawers`, and render your real knowledge graph. No config files, no tokens.
+
+### ☁️ Hosted (remote MemPalace server)
+
+If your MemPalace lives on a remote server (VPS, home lab, etc.), use the **Hosted** tab:
+
+1. Enter the MCP endpoint URL
+2. Paste your bearer token (if the endpoint is auth-protected)
+3. Click **Test & Connect**
+
+For a fully secure free hosting setup (Cloudflare Pages + Access + Tunnel keeps your token out of the browser entirely), see **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+
+### 🎯 Demo (default)
+
+The sanitized demo dataset (`demo-palace.json`) — safe for screenshots, first-run demos, or offline exploration. No server required.
+
+### Full v3.3.0 integration
+
+Once connected, the dashboard works against the real MCP tools — not a snapshot. Every action maps to a live tool call:
+
+| Action | MCP tool |
+|---|---|
+| Load palace | `mempalace_status` + `mempalace_list_drawers` (paginated) |
+| View drawer content | `mempalace_get_drawer` |
+| Edit a drawer inline | `mempalace_update_drawer` |
+| Delete a drawer | `mempalace_delete_drawer` |
+| Add a new memory | `mempalace_add_drawer` |
+| Find related drawers | `mempalace_find_tunnels` |
+| Search | `mempalace_search` + `mempalace_kg_query` |
+
+Tested against MemPalace v3.3.0 on Python 3.12.
 
 ## Hosting Securely (Free)
 
