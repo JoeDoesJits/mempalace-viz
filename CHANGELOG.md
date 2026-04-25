@@ -2,6 +2,15 @@
 
 All notable changes to MemPalaceViz are documented here.
 
+## [1.4.1] - 2026-04-25
+
+### MemPalace v3.3.3 compatibility + minor polish
+
+- **`created_at` support** — drawer detail panel now prefers `created_at` (added in MemPalace v3.3.1) over `filed_at` for the date display, falling back gracefully on older servers.
+- **Tested against MemPalace v3.3.3** — verified end-to-end against the latest server (paginated `list_drawers`, `get_drawer`, `update_drawer`, `delete_drawer`, plus the empty-string-as-no-filter behavior in `mempalace_search`).
+- **README updates** — link to official site (mempalaceofficial.com), added "Learn More About MemPalace" section, added Troubleshooting section covering CORS and mixed-content for LAN setups.
+- **Crystal orb logo** — promoted from a one-off addition to the official 🔮 brand mark (logo.svg, favicon.svg, inline header SVG with cyan glow).
+
 ## [1.4.0] - 2026-04-15
 
 ### MemPalace v3.3.0 Integration, Connection Manager & UX Polish

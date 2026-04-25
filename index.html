@@ -1547,7 +1547,7 @@
     <div class="refresh-indicator" title="Connection status and auto-refresh progress"><span class="pulse-dot"></span><span id="refresh-label">Live · 274 drawers</span> <span id="conn-indicator" class="conn-badge demo" style="cursor:pointer" title="Connection settings">DEMO</span></div>
     <div id="minimap" title="Minimap — drag to pan the view"><canvas id="minimap-canvas"></canvas><div class="viewport-rect" id="minimap-vp"></div></div>
     <div id="status-toast"></div>
-    <div id="version-badge" title="Click to check for updates" onclick="checkForUpdates()">Viz v1.4.0</div>
+    <div id="version-badge" title="Click to check for updates" onclick="checkForUpdates()">Viz v1.4.1</div>
     <div id="kbd-hint">
       <span><kbd>?</kbd> keys</span>
       <span><kbd>⌘K</kbd> commands</span>
@@ -2116,7 +2116,7 @@ var connMode = localStorage.getItem('mempalace-conn-mode') || 'auto'; // 'local'
 var connUrl = localStorage.getItem('mempalace-conn-url') || '';
 var MCP_ENDPOINT = '/api/mcp';
 let sessionId = null;
-var VIZ_VERSION = '1.4.0';
+var VIZ_VERSION = '1.4.1';
 var serverVersion = null; // MemPalace package version (fetched from PyPI)
 var mcpFrameworkVersion = null; // MCP framework version from initialize response
 
@@ -2776,7 +2776,8 @@ async function fetchFullDrawer(drawerId) {
       node.data.p = fullContent;
       node.data.l = fullContent.length;
       node.data.s = drawer.metadata?.source_file || node.data.s;
-      node.data.d = drawer.metadata?.filed_at || node.data.d;
+      // Prefer created_at (added in MemPalace v3.3.1) over filed_at
+      node.data.d = drawer.metadata?.created_at || drawer.metadata?.filed_at || node.data.d;
       // Update meta line
       var metaEl = document.querySelector('.detail-meta');
       var dateStr = node.data.d ? new Date(node.data.d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';

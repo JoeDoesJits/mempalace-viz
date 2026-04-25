@@ -175,6 +175,31 @@ mempalace-viz/
 | `?` | Keyboard reference overlay |
 | `Ctrl+K` | Command palette |
 
+## Troubleshooting
+
+### "I see the page but nothing connects to my LAN MCP server"
+
+If you ran `mcp-proxy --host 0.0.0.0` to expose your MemPalace on the LAN and another machine's browser can't reach it, the culprit is almost always one of:
+
+**1. CORS** — `mcp-proxy` doesn't send cross-origin headers by default. The browser silently blocks the POST. Fix: start it with an allow-origin flag:
+
+```bash
+mcp-proxy --host 0.0.0.0 --allow-origin "*" \
+  --named-server mempalace -- python -m mempalace.mcp_server
+```
+
+(For tighter security, replace `"*"` with the specific origin serving your dashboard, e.g. `"http://192.168.1.50:3456"`.)
+
+**2. Mixed-content blocking** — if you loaded the dashboard from `https://` (e.g. a Cloudflare Pages deploy) and try to hit `http://192.168.x.x`, the browser blocks the request hard. Fixes:
+- Serve the dashboard over plain HTTP locally on the same LAN, **or**
+- Put the MCP server behind HTTPS (CF Tunnel + Pages Function proxy is the easy path — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md))
+
+**3. Wrong URL in Connection Settings** — the **Local Server** tab defaults to `localhost:8000`, which means *the dashboard's machine*. For LAN setups, switch to the **Hosted** tab and enter the MCP host's LAN IP (e.g. `http://192.168.1.42:8000/servers/mempalace/mcp`).
+
+### "Test & Connect succeeds but the graph is empty"
+
+Most likely your palace just hasn't been mined yet. Run `mempalace init` and `mempalace mine <project-dir>` against your project first. The dashboard reflects whatever's in your palace — it doesn't ingest data itself.
+
 ## Learn More About MemPalace
 
 MemPalaceViz is a visualization layer — it doesn't replace MemPalace itself. To get the most out of it, learn the underlying system:
