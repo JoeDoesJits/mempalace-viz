@@ -1,6 +1,6 @@
 # MemPalaceViz
 
-A futuristic knowledge graph visualization dashboard for the [MemPalace](https://github.com/basicmachines-co/basic-memory) personal knowledge base system.
+A futuristic knowledge graph visualization dashboard for [MemPalace](https://github.com/MemPalace/mempalace) — give your AI a memory, mine projects and conversations into a searchable palace.
 
 Built as a single-file SPA with D3.js force-directed graphs, canvas particle effects, and real-time MCP integration.
 
