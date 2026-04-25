@@ -2321,44 +2321,44 @@ async function fetchLive(silent) {
     const wingNames = Object.keys(status.wings || {});
     const wingName = wingNames[0] || 'default';
 
-    // Use list_drawers (v3.3.0) for each room — returns drawer_id and content preview
+    // Use list_drawers (v3.3.0+) — capped at MAX_INITIAL per room for
+    // performance. Large palaces (10k+ drawers) make SVG force-graphs
+    // unusable above this. Click "Load more" on a room to fetch the rest.
+    const MAX_INITIAL = 100;
     const rooms = Object.keys(status.rooms);
     const palaceData = { wing: wingName, total_drawers: status.total_drawers, rooms: [] };
 
     for (let i = 0; i < rooms.length; i++) {
       const roomName = rooms[i];
+      const roomTotal = status.rooms[roomName] || 0;
       const roomDrawers = [];
-      let offset = 0;
-      const pageSize = 100;
 
-      // Paginate through all drawers in this room
-      while (true) {
-        const resp = await mpcCall('tools/call', { name: 'mempalace_list_drawers', arguments: { room: roomName, wing: wingName, limit: pageSize, offset } }, 10 + i * 100 + offset);
-        const content = JSON.parse(resp.result.content[0].text);
-        const batch = content.drawers || [];
-        batch.forEach(d => {
-          roomDrawers.push({
-            id: d.drawer_id || '',
-            t: (d.content_preview || '').substring(0, 90),
-            s: '',
-            l: (d.content_preview || '').length,
-            p: d.content_preview || '',
-            d: '',
-          });
+      const resp = await mpcCall('tools/call', { name: 'mempalace_list_drawers', arguments: { room: roomName, wing: wingName, limit: MAX_INITIAL, offset: 0 } }, 10 + i);
+      const content = JSON.parse(resp.result.content[0].text);
+      const batch = content.drawers || [];
+      batch.forEach(d => {
+        const preview = (d.content_preview || '').substring(0, 200);
+        roomDrawers.push({
+          id: d.drawer_id || '',
+          t: preview.substring(0, 90),
+          s: '',
+          l: d.content_length || preview.length,
+          p: preview, // truncated preview only — full content via get_drawer on click
+          d: '',
         });
-        if (batch.length < pageSize) break;
-        offset += pageSize;
-      }
+      });
 
-      palaceData.rooms.push({ name: roomName, drawers: roomDrawers });
+      palaceData.rooms.push({ name: roomName, drawers: roomDrawers, total: roomTotal, loaded: roomDrawers.length });
     }
 
     const prevCount = palace ? palace.total_drawers : 0;
     palace = palaceData;
     render(palace);
+    const rendered = palaceData.rooms.reduce((sum, r) => sum + r.drawers.length, 0);
     const delta = palaceData.total_drawers - prevCount;
     const deltaStr = delta > 0 ? ` (+${delta})` : '';
-    document.getElementById('refresh-label').textContent = `Live · ${status.total_drawers} drawers${deltaStr}`;
+    const capStr = rendered < status.total_drawers ? ` · ${rendered} rendered` : '';
+    document.getElementById('refresh-label').textContent = `Live · ${status.total_drawers} drawers${capStr}${deltaStr}`;
     lastRefreshTime = Date.now();
     if (silent && delta > 0) showToast(`${delta} new drawer${delta > 1 ? 's' : ''} detected`);
     scheduleRefresh();
