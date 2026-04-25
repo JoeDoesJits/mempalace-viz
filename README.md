@@ -1,8 +1,10 @@
 # MemPalaceViz
 
-A futuristic knowledge graph visualization dashboard for [MemPalace](https://github.com/MemPalace/mempalace) — give your AI a memory, mine projects and conversations into a searchable palace.
+A futuristic knowledge graph visualization dashboard for [MemPalace](https://mempalaceofficial.com) — give your AI a memory, mine projects and conversations into a searchable palace.
 
-Built as a single-file SPA with D3.js force-directed graphs, canvas particle effects, and real-time MCP integration.
+Built as a single-file SPA with D3.js force-directed graphs, canvas particle effects, and real-time MCP integration. Tested against MemPalace **v3.3.3**.
+
+> 📚 **New to MemPalace?** Start at the [official docs](https://mempalaceofficial.com/guide/getting-started.html) — installation, the AAAK memory dialect, the wing/room/drawer model, and the full MCP tool reference.
 
 ## Screenshots
 
@@ -29,7 +31,7 @@ Built as a single-file SPA with D3.js force-directed graphs, canvas particle eff
 ## Features
 
 - **Force-directed graph** rendering hundreds of knowledge nodes across rooms
-- **MemPalace v3.3.0 integration** — paginated `list_drawers`, `get_drawer` full content, `update_drawer` inline edit, `delete_drawer` by ID
+- **MemPalace v3.3.x integration** — paginated `list_drawers`, `get_drawer` full content, `update_drawer` inline edit, `delete_drawer` by ID
 - **Connection settings** — 3-tab modal (Local Server, Hosted, Demo) with auto-detection and Test & Connect
 - **Version tracker** — badge showing Viz + Palace versions, update checker via GitHub Releases and PyPI
 - **Themed tooltips** — 54 glassmorphic tooltips replacing native browser titles, with dynamic arrow alignment
@@ -89,7 +91,7 @@ For a fully secure free hosting setup (Cloudflare Pages + Access + Tunnel keeps 
 
 The sanitized demo dataset (`demo-palace.json`) — safe for screenshots, first-run demos, or offline exploration. No server required.
 
-### Full v3.3.0 integration
+### Full v3.3.x integration
 
 Once connected, the dashboard works against the real MCP tools — not a snapshot. Every action maps to a live tool call:
 
@@ -103,7 +105,7 @@ Once connected, the dashboard works against the real MCP tools — not a snapsho
 | Find related drawers | `mempalace_find_tunnels` |
 | Search | `mempalace_search` + `mempalace_kg_query` |
 
-Tested against MemPalace v3.3.0 on Python 3.12.
+Tested against MemPalace **v3.3.3** on Python 3.12.
 
 ## Hosting Securely (Free)
 
@@ -172,6 +174,16 @@ mempalace-viz/
 | `R` | Refresh data |
 | `?` | Keyboard reference overlay |
 | `Ctrl+K` | Command palette |
+
+## Learn More About MemPalace
+
+MemPalaceViz is a visualization layer — it doesn't replace MemPalace itself. To get the most out of it, learn the underlying system:
+
+- 🌐 **[Official site](https://mempalaceofficial.com)** — homepage and project overview
+- 📖 **[Getting Started guide](https://mempalaceofficial.com/guide/getting-started.html)** — install, init, and mine your first palace
+- 🔮 **[AAAK memory dialect](https://mempalaceofficial.com)** — the compressed memory format MemPalace uses (entity codes, emotion markers, hall/wing/room structure)
+- 🛠️ **[GitHub repo](https://github.com/MemPalace/mempalace)** — source, issues, full [CHANGELOG](https://github.com/MemPalace/mempalace/blob/main/CHANGELOG.md)
+- 📦 **[PyPI](https://pypi.org/project/mempalace/)** — `pip install mempalace`
 
 ## Contributing
 
