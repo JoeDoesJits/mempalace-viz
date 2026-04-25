@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>MemPalaceViz — The Crystal Fortress</title>
+<title>MemPalaceViz — The Crystal Palace</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="alternate icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
@@ -4498,7 +4498,8 @@ function initTheme() {
     root.setAttribute('data-theme', 'light');
     btn.textContent = '🌙';
     if (starsCanvas) starsCanvas.style.opacity = '0';
-    if (crystalCanvas) crystalCanvas.style.opacity = '0.15';
+    // Public palace lean — crystal shards more visible in light mode (was 0.15)
+    if (crystalCanvas) crystalCanvas.style.opacity = '0.3';
     if (sparkleCanvas) sparkleCanvas.style.opacity = '1';
   }
 
