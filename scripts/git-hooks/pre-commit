@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Pre-commit hook for the public mempalace-viz repo.
+# Delegates to scripts/check-no-pii.sh which scans staged changes for any
+# personal-data markers and hard-blocks the commit on any match.
+#
+# Activated by: git config core.hooksPath scripts/git-hooks
+# (also wired automatically by scripts/install-hooks.sh)
+exec bash "$(git rev-parse --show-toplevel)/scripts/check-no-pii.sh" --staged
