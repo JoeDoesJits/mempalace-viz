@@ -1,8 +1,8 @@
 # MemPalaceViz
 
-A futuristic knowledge graph visualization dashboard for [MemPalace](https://mempalaceofficial.com) — give your AI a memory, mine projects and conversations into a searchable palace.
+**Walk the halls of your AI's memory.** A crystal-palace visualization for [MemPalace](https://mempalaceofficial.com) — every drawer a memory, every room a topic, every wing a project.
 
-Built as a single-file SPA with D3.js force-directed graphs, canvas particle effects, and real-time MCP integration. Tested against MemPalace **v3.3.3**.
+Single-file SPA with D3.js force-directed graphs, drifting crystal shards, and real-time MCP integration. Tested against MemPalace **v3.3.3**.
 
 > 📚 **New to MemPalace?** Start at the [official docs](https://mempalaceofficial.com/guide/getting-started.html) — installation, the AAAK memory dialect, the wing/room/drawer model, and the full MCP tool reference.
 

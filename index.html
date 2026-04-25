@@ -1594,7 +1594,7 @@
         </svg>
         <span>MemPalaceViz</span>
       </div>
-      <div class="palace-sub">wing demo · crystal fortress</div>
+      <div class="palace-sub">wing demo · the crystal palace</div>
       <div class="stats-grid">
         <div class="stat-card" title="Total memories stored in your palace"><div class="stat-val" id="s-drawers">0</div><div class="stat-label">Drawers</div></div>
         <div class="stat-card" title="Number of topic rooms"><div class="stat-val" id="s-rooms">0</div><div class="stat-label">Rooms</div></div>
@@ -1742,8 +1742,10 @@ const PALACE = null; // No embedded data — loads demo-palace.json automaticall
   const canvas = document.getElementById('stars-canvas');
   const ctx = canvas.getContext('2d');
   let W, H, particles = [];
-  const STAR_COUNT = 200;
-  const NEBULA_COUNT = 5;
+  // Public build leans palace, not galaxy — fewer ambient particles, lighter nebulae.
+  // The crystal-shard canvas (palace-themed) carries more of the visual weight.
+  const STAR_COUNT = 70;
+  const NEBULA_COUNT = 3;
 
   function resize() {
     W = canvas.width = canvas.offsetWidth;
@@ -2022,7 +2024,7 @@ const PALACE = null; // No embedded data — loads demo-palace.json automaticall
   const canvas = document.getElementById('crystal-canvas');
   const ctx = canvas.getContext('2d');
   let W, H;
-  const SHARD_COUNT = 12;
+  const SHARD_COUNT = 18; // Public build: more crystal shards, fewer stars — palace lean.
   let shards = [];
 
   function resize() {
