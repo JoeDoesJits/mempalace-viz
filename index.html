@@ -2403,6 +2403,9 @@ async function fetchLive(silent) {
     lastRefreshTime = Date.now();
     if (silent && delta > 0) showToast(`${delta} new drawer${delta > 1 ? 's' : ''} detected`);
     scheduleRefresh();
+    // Auto-fetch dates in background so timeline + recency mode just work.
+    // Cached in localStorage; subsequent loads are instant.
+    setTimeout(() => fetchDrawerDates(true).catch(() => {}), 100);
   } catch (e) {
     console.warn('Live fetch failed:', e);
     document.getElementById('refresh-label').textContent = 'Offline · cached data';
@@ -2456,6 +2459,8 @@ async function loadMoreRoom(roomName) {
     const totalRendered = palace.rooms.reduce((sum, r) => sum + r.drawers.length, 0);
     document.getElementById('refresh-label').textContent = 'Live · ' + palace.total_drawers + ' drawers · ' + totalRendered + ' rendered';
     showToast('Loaded ' + added + ' more drawers in ' + roomName);
+    // Enrich newly-loaded drawers' dates in the background
+    setTimeout(() => fetchDrawerDates(true).catch(() => {}), 100);
   } catch (e) {
     console.warn('loadMoreRoom failed:', e);
     showToast('Load failed: ' + (e.message || 'unknown'));
@@ -2464,48 +2469,110 @@ async function loadMoreRoom(roomName) {
   }
 }
 
-// ── Enable timeline (fetches dates for already-loaded drawers) ──
-// list_drawers doesn't return created_at; the timeline needs it.
-// Run this on demand to enrich each loaded drawer with its date via
-// parallel get_drawer calls in batches.
-async function enableTimeline() {
-  if (!palace) { showToast('No palace loaded'); return; }
-  const dated = nodes.filter(n => n.type === 'drawer' && n.drawerId && n.data && !n.data.d);
-  if (!dated.length) {
-    showToast(nodes.some(n => n.type === 'drawer' && n.data && n.data.d) ? 'Timeline already enabled' : 'No drawers loaded');
+// ── Drawer date enrichment ──
+// list_drawers doesn't return created_at, so timeline + recency mode
+// can't function without a follow-up enrichment pass. We run this
+// automatically after fetchLive (silent) and cache results in
+// localStorage. Manual trigger from #enable-timeline-btn is also
+// available as a retry.
+
+const DATE_CACHE_KEY = 'palaceviz-drawer-dates-v1';
+
+function loadDateCache() {
+  try {
+    return JSON.parse(localStorage.getItem(DATE_CACHE_KEY) || '{}');
+  } catch (e) { return {}; }
+}
+
+function saveDateCache(cache) {
+  try { localStorage.setItem(DATE_CACHE_KEY, JSON.stringify(cache)); }
+  catch (e) { /* localStorage full or disabled */ }
+}
+
+// Hydrate already-rendered nodes from the local cache. Fast: synchronous.
+// Returns the count hydrated.
+function hydrateDatesFromCache() {
+  const cache = loadDateCache();
+  let hits = 0;
+  nodes.forEach(n => {
+    if (n.type === 'drawer' && n.drawerId && n.data && !n.data.d && cache[n.drawerId]) {
+      n.data.d = cache[n.drawerId];
+      hits++;
+    }
+  });
+  return hits;
+}
+
+// Async enrichment — fetches dates for any drawer that's still missing one.
+// Pass silent=true (default) for the background auto-run; pass false for the
+// manual button to surface progress.
+async function fetchDrawerDates(silent) {
+  if (silent === undefined) silent = true;
+  if (!palace) return;
+
+  // First, hydrate from cache (instant)
+  const cacheHits = hydrateDatesFromCache();
+  if (cacheHits > 0) {
+    initTimeline();
+    if (typeof applyColorMode === 'function') applyColorMode();
+  }
+
+  const missing = nodes.filter(n => n.type === 'drawer' && n.drawerId && n.data && !n.data.d);
+  if (!missing.length) {
+    const btn = document.getElementById('enable-timeline-btn');
+    if (btn) btn.hidden = true;
     return;
   }
 
-  const eta = Math.max(5, Math.ceil(dated.length / 20) * 2);
-  if (!confirm('Fetch dates for ' + dated.length + ' loaded drawers to enable the timeline?\n\nMay take ~' + eta + 's.')) return;
-
   const btn = document.getElementById('enable-timeline-btn');
-  if (btn) { btn.textContent = 'Fetching dates…'; btn.disabled = true; }
+  if (btn && !silent) { btn.textContent = 'Fetching…'; btn.disabled = true; }
 
+  const cache = loadDateCache();
   const batchSize = 20;
   let done = 0;
-  for (let i = 0; i < dated.length; i += batchSize) {
-    const batch = dated.slice(i, i + batchSize);
+  let added = 0;
+
+  for (let i = 0; i < missing.length; i += batchSize) {
+    const batch = missing.slice(i, i + batchSize);
     await Promise.all(batch.map(async (n) => {
       try {
         const resp = await mpcCall('tools/call', { name: 'mempalace_get_drawer', arguments: { drawer_id: n.drawerId } }, 9000 + i);
         const drawer = JSON.parse(resp.result.content[0].text);
         const date = drawer.metadata && (drawer.metadata.created_at || drawer.metadata.filed_at);
-        if (date) n.data.d = date;
-      } catch (e) { /* skip individual failures */ }
+        if (date) {
+          n.data.d = date;
+          cache[n.drawerId] = date;
+          added++;
+        }
+      } catch (e) { /* skip */ }
     }));
     done += batch.length;
-    document.getElementById('refresh-label').textContent = 'Loading dates · ' + done + '/' + dated.length;
+    if (!silent) {
+      document.getElementById('refresh-label').textContent = 'Loading dates · ' + done + '/' + missing.length;
+    }
   }
 
-  // Re-init timeline so it picks up the new dates
-  initTimeline();
-  if (btn) btn.hidden = true;
+  saveDateCache(cache);
 
-  const totalRendered = palace.rooms.reduce((sum, r) => sum + r.drawers.length, 0);
-  document.getElementById('refresh-label').textContent = 'Live · ' + palace.total_drawers + ' drawers · ' + totalRendered + ' rendered';
-  showToast('Timeline enabled');
+  // Re-init timeline + recency now that dates exist
+  initTimeline();
+  if (typeof applyColorMode === 'function') applyColorMode();
+
+  if (btn) {
+    btn.hidden = added > 0; // hide if we got dates; keep visible if nothing loaded
+    btn.textContent = '📅 Enable Timeline';
+    btn.disabled = false;
+  }
+
+  if (!silent) {
+    const totalRendered = palace.rooms.reduce((sum, r) => sum + r.drawers.length, 0);
+    document.getElementById('refresh-label').textContent = 'Live · ' + palace.total_drawers + ' drawers · ' + totalRendered + ' rendered';
+    showToast(added > 0 ? ('Timeline ready · ' + added + ' dates loaded') : 'No dates available for these drawers');
+  }
 }
+
+// Backwards-compat alias for the button onclick
+async function enableTimeline() { return fetchDrawerDates(false); }
 
 function scheduleRefresh() {
   let elapsed = 0;
