@@ -314,6 +314,46 @@
     color: var(--fg-dim);
     margin-left: 2px;
   }
+  .room-count.capped { color: #ffd93d; }
+  .room-load-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: 4px;
+    border-radius: 50%;
+    background: rgba(255, 217, 61, 0.15);
+    color: #ffd93d;
+    font: 700 14px sans-serif;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .room-load-more:hover {
+    background: rgba(255, 217, 61, 0.35);
+    transform: scale(1.15);
+  }
+  .room-load-more.loading {
+    background: rgba(255, 217, 61, 0.2);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+  /* Timeline enable button */
+  #enable-timeline-btn {
+    background: rgba(77, 217, 232, 0.15);
+    border: 1px solid rgba(77, 217, 232, 0.3);
+    color: #4dd9e8;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font: 500 11px 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    margin-right: 8px;
+    transition: all 0.15s ease;
+  }
+  #enable-timeline-btn:hover { background: rgba(77, 217, 232, 0.3); }
+  #enable-timeline-btn[hidden] { display: none; }
 
   /* ── Drawer Detail ── */
   #detail {
@@ -1556,6 +1596,7 @@
       <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> layout</span>
     </div>
     <div id="timeline-bar">
+      <button id="enable-timeline-btn" hidden title="list_drawers doesn't return dates by default — fetch them now to enable the timeline" onclick="enableTimeline()">📅 Enable Timeline</button>
       <button id="timeline-play" title="Play/Pause timeline">▶</button>
       <input type="range" id="timeline-slider" min="0" max="100" value="100" step="1" title="Scrub through time — slide left to see older memories">
       <span id="timeline-date" title="Current timeline position">All time</span>
@@ -2374,6 +2415,98 @@ async function fetchLive(silent) {
   }
 }
 
+// ── Load more drawers in a room (uncaps the initial 100/room limit) ──
+async function loadMoreRoom(roomName) {
+  if (!palace) return;
+  const room = palace.rooms.find(r => r.name === roomName);
+  if (!room) return;
+  const remaining = (room.total || 0) - room.drawers.length;
+  if (remaining <= 0) { showToast('All drawers in ' + roomName + ' already loaded'); return; }
+
+  const eta = Math.max(2, Math.ceil(remaining / 100) * 2);
+  if (!confirm('Load all ' + remaining + ' more drawers in "' + roomName + '"?\n\nMay take ~' + eta + 's and slow the dashboard.')) return;
+
+  // Visual: spin the "+" badge on this room's chip
+  const chip = document.querySelector('.room-chip[data-room="' + roomName + '"] .room-load-more');
+  if (chip) chip.classList.add('loading');
+
+  try {
+    document.getElementById('refresh-label').textContent = 'Loading ' + roomName + '… 0/' + remaining;
+    let offset = room.drawers.length;
+    const pageSize = 100;
+    let added = 0;
+    while (offset < (room.total || 0)) {
+      const resp = await mpcCall('tools/call', { name: 'mempalace_list_drawers', arguments: { room: roomName, wing: palace.wing, limit: pageSize, offset } }, 5000 + offset);
+      const content = JSON.parse(resp.result.content[0].text);
+      const batch = content.drawers || [];
+      batch.forEach(d => {
+        const preview = (d.content_preview || '').substring(0, 200);
+        room.drawers.push({
+          id: d.drawer_id || '',
+          t: preview.substring(0, 90),
+          s: '', l: d.content_length || preview.length, p: preview, d: '',
+        });
+      });
+      added += batch.length;
+      offset += pageSize;
+      document.getElementById('refresh-label').textContent = 'Loading ' + roomName + '… ' + added + '/' + remaining;
+      if (batch.length < pageSize) break;
+    }
+    render(palace);
+    const totalRendered = palace.rooms.reduce((sum, r) => sum + r.drawers.length, 0);
+    document.getElementById('refresh-label').textContent = 'Live · ' + palace.total_drawers + ' drawers · ' + totalRendered + ' rendered';
+    showToast('Loaded ' + added + ' more drawers in ' + roomName);
+  } catch (e) {
+    console.warn('loadMoreRoom failed:', e);
+    showToast('Load failed: ' + (e.message || 'unknown'));
+  } finally {
+    if (chip) chip.classList.remove('loading');
+  }
+}
+
+// ── Enable timeline (fetches dates for already-loaded drawers) ──
+// list_drawers doesn't return created_at; the timeline needs it.
+// Run this on demand to enrich each loaded drawer with its date via
+// parallel get_drawer calls in batches.
+async function enableTimeline() {
+  if (!palace) { showToast('No palace loaded'); return; }
+  const dated = nodes.filter(n => n.type === 'drawer' && n.drawerId && n.data && !n.data.d);
+  if (!dated.length) {
+    showToast(nodes.some(n => n.type === 'drawer' && n.data && n.data.d) ? 'Timeline already enabled' : 'No drawers loaded');
+    return;
+  }
+
+  const eta = Math.max(5, Math.ceil(dated.length / 20) * 2);
+  if (!confirm('Fetch dates for ' + dated.length + ' loaded drawers to enable the timeline?\n\nMay take ~' + eta + 's.')) return;
+
+  const btn = document.getElementById('enable-timeline-btn');
+  if (btn) { btn.textContent = 'Fetching dates…'; btn.disabled = true; }
+
+  const batchSize = 20;
+  let done = 0;
+  for (let i = 0; i < dated.length; i += batchSize) {
+    const batch = dated.slice(i, i + batchSize);
+    await Promise.all(batch.map(async (n) => {
+      try {
+        const resp = await mpcCall('tools/call', { name: 'mempalace_get_drawer', arguments: { drawer_id: n.drawerId } }, 9000 + i);
+        const drawer = JSON.parse(resp.result.content[0].text);
+        const date = drawer.metadata && (drawer.metadata.created_at || drawer.metadata.filed_at);
+        if (date) n.data.d = date;
+      } catch (e) { /* skip individual failures */ }
+    }));
+    done += batch.length;
+    document.getElementById('refresh-label').textContent = 'Loading dates · ' + done + '/' + dated.length;
+  }
+
+  // Re-init timeline so it picks up the new dates
+  initTimeline();
+  if (btn) btn.hidden = true;
+
+  const totalRendered = palace.rooms.reduce((sum, r) => sum + r.drawers.length, 0);
+  document.getElementById('refresh-label').textContent = 'Live · ' + palace.total_drawers + ' drawers · ' + totalRendered + ' rendered';
+  showToast('Timeline enabled');
+}
+
 function scheduleRefresh() {
   let elapsed = 0;
   const interval = 120; // seconds
@@ -2430,8 +2563,25 @@ function render(data) {
     chip.className = 'room-chip active';
     chip.dataset.room = room.name;
     chip.style.color = color;
-    chip.innerHTML = `<span class="room-dot" style="background:${color}"></span>${room.name}<span class="room-count">${room.drawers.length}</span>`;
-    chip.onclick = () => toggleRoomFilter(room.name);
+    const isCapped = room.total != null && room.total > room.drawers.length;
+    const countTxt = isCapped ? `${room.drawers.length}/${room.total}` : `${room.drawers.length}`;
+    const countCls = isCapped ? 'room-count capped' : 'room-count';
+    const loadMoreBtn = isCapped
+      ? `<span class="room-load-more" title="Load all ${room.total - room.drawers.length} more drawers in ${escHtml(room.name)}" data-room="${escHtml(room.name)}">＋</span>`
+      : '';
+    chip.innerHTML = `<span class="room-dot" style="background:${color}"></span>${escHtml(room.name)}<span class="${countCls}">${countTxt}</span>${loadMoreBtn}`;
+    chip.onclick = (ev) => {
+      // Don't toggle filter when clicking the "+" affordance
+      if (ev.target && ev.target.classList && ev.target.classList.contains('room-load-more')) return;
+      toggleRoomFilter(room.name);
+    };
+    const plus = chip.querySelector('.room-load-more');
+    if (plus) {
+      plus.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        loadMoreRoom(room.name);
+      });
+    }
     legend.appendChild(chip);
   });
 
@@ -3199,6 +3349,7 @@ function initTimeline() {
   const dateLabel = document.getElementById('timeline-date');
   const countLabel = document.getElementById('timeline-count');
   const playBtn = document.getElementById('timeline-play');
+  const enableBtn = document.getElementById('enable-timeline-btn');
   let playing = false;
   let playInterval = null;
 
@@ -3214,6 +3365,22 @@ function initTimeline() {
     dates.sort(function(a, b) { return a.ts - b.ts; });
     return dates;
   }
+
+  // If no drawer nodes have dates, surface the "Enable Timeline" button so
+  // the user can fetch them on demand. (list_drawers doesn't return dates;
+  // we fetch via parallel get_drawer when the user opts in.)
+  const hasDates = nodes.some(n => n.type === 'drawer' && n.data && n.data.d);
+  const hasDrawers = nodes.some(n => n.type === 'drawer');
+  if (enableBtn) enableBtn.hidden = hasDates || !hasDrawers;
+  if (slider) {
+    slider.disabled = !hasDates;
+    slider.style.opacity = hasDates ? '1' : '0.4';
+  }
+  if (playBtn) {
+    playBtn.disabled = !hasDates;
+    playBtn.style.opacity = hasDates ? '1' : '0.4';
+  }
+  if (dateLabel) dateLabel.textContent = hasDates ? 'All time' : (hasDrawers ? 'Dates not loaded' : '—');
 
   function applyTimeline(pct) {
     const dated = getSortedDates();
